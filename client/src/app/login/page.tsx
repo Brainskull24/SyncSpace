@@ -48,7 +48,6 @@ export default function LoginPage() {
     color: "",
   });
   const [showFirstTimeFields, setShowFirstTimeFields] = useState(false);
-
   const {
     register,
     handleSubmit,
@@ -70,13 +69,14 @@ export default function LoginPage() {
     }
   }, [watchedPassword]);
 
-  useEffect(() => {
-    if (failedAttempts >= 3) {
-      setShowCaptcha(true);
-    }
-  }, [failedAttempts]);
+  // useEffect(() => {
+  //   if (failedAttempts >= 3) {
+  //     setShowCaptcha(false);
+  //   }
+  // }, [failedAttempts]);
 
   const onSubmit = async (data: LoginFormData) => {
+    alert("Submitting login data...");
     if (showCaptcha && !captchaVerified) {
       toast.error("Please complete the security verification.");
       return;
@@ -334,13 +334,8 @@ export default function LoginPage() {
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3"
+                  className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 rounded-lg"
                   disabled={isLoading || (showCaptcha && !captchaVerified)}
-                  onClick={() => {
-                    toast("Processing login...", {
-                      description: "Please wait while we log you in.",
-                    });
-                  }}
                 >
                   {isLoading ? (
                     <>
@@ -413,7 +408,7 @@ export default function LoginPage() {
           </Card>
 
           {/* Demo Credentials */}
-          <motion.div
+          {/* <motion.div
             className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -427,7 +422,7 @@ export default function LoginPage() {
               <div>Professor: prof.smith@university.edu / password123</div>
               <div>Student: student@university.edu / password123</div>
             </div>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
       </div>
     </>

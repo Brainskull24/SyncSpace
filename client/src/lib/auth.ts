@@ -1,4 +1,5 @@
 import { z } from "zod"
+import api from "./axios"
 
 export const loginSchema = z.object({
   email: z
@@ -10,7 +11,7 @@ export const loginSchema = z.object({
       return universityDomains.some((domain) => email.includes(domain))
     }, "Please use a valid university email address"),
   password: z.string().min(1, "Password is required").min(8, "Password must be at least 8 characters"),
-  rememberMe: z.boolean().optional(),
+  rememberMe: z.string().optional(),
   universityCode: z.string().optional(),
 })
 
@@ -66,10 +67,7 @@ export const checkPasswordStrength = (
   }
 }
 
-// Mock authentication function
-export const authenticateUser = async (
-  data: LoginFormData,
-): Promise<{
+interface AuthResponse {
   success: boolean
   user?: {
     id: string
@@ -80,49 +78,31 @@ export const authenticateUser = async (
   }
   token?: string
   error?: string
-}> => {
-  await new Promise((resolve) => setTimeout(resolve, 1500))
+}
 
-  if (data.email === "admin@university.edu" && data.password === "password123") {
-    return {
-      success: true,
-      user: {
-        id: "1",
-        email: data.email,
-        name: "John Admin",
-        role: "admin",
-        university: "University of Technology",
-      },
-      token: "mock-jwt-token-admin",
-    }
-  } else if (data.email === "prof.smith@university.edu" && data.password === "password123") {
-    return {
-      success: true,
-      user: {
-        id: "2",
-        email: data.email,
-        name: "Prof. Smith",
-        role: "professor",
-        university: "University of Technology",
-      },
-      token: "mock-jwt-token-professor",
-    }
-  } else if (data.email === "student@university.edu" && data.password === "password123") {
-    return {
-      success: true,
-      user: {
-        id: "3",
-        email: data.email,
-        name: "Jane Student",
-        role: "student",
-        university: "University of Technology",
-      },
-      token: "mock-jwt-token-student",
-    }
-  } else {
+export const authenticateUser = async (
+  data: LoginFormData
+): Promise<AuthResponse> => {
+  try {
+    const response = await api.post<AuthResponse>(
+      "/auth/login",
+      data,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        withCredentials: true,
+      }
+    )
+
+    return response.data
+  } catch (error: any) {
     return {
       success: false,
-      error: "Invalid email or password. Please try again.",
+      error:
+        error?.response?.data?.error ||
+        error?.response?.data?.message ||
+        "Something went wrong. Please try again.",
     }
   }
 }

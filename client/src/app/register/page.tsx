@@ -1,17 +1,27 @@
-"use client"
-import { Toaster } from "@/components/ui/sonner"
-import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { FileUpload } from "@/components/file-upload"
-import { ProgressIndicator } from "@/components/progress-indicator"
-import { useToast } from "@/hooks/useToast"
+"use client";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FileUpload } from "@/components/file-upload";
+import { ProgressIndicator } from "@/components/progress-indicator";
 import {
   GraduationCap,
   Eye,
@@ -28,9 +38,9 @@ import {
   ArrowRight,
   CheckCircle,
   AlertCircle,
-} from "lucide-react"
-import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
+} from "lucide-react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   step1Schema,
   step2Schema,
@@ -48,34 +58,36 @@ import {
   sendVerificationCode,
   verifyCode,
   submitRegistration,
-} from "@/lib/registration"
+} from "@/lib/registration";
+import { toast } from "@/components/ui/sonner";
 
-const stepLabels = ["Account", "Profile", "Role", "Verification"]
+const stepLabels = ["Account", "Profile", "Role", "Verification"];
 
 export default function RegisterPage() {
-  const [currentStep, setCurrentStep] = useState(1)
-  const [completedSteps, setCompletedSteps] = useState<number[]>([])
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [verificationSent, setVerificationSent] = useState(false)
-  const [resendCountdown, setResendCountdown] = useState(0)
-  const [registrationData, setRegistrationData] = useState<Partial<RegistrationData>>({})
-  const { toasts, toast, dismiss } = useToast()
+  const [currentStep, setCurrentStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [verificationSent, setVerificationSent] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [registrationData, setRegistrationData] = useState<
+    Partial<RegistrationData>
+  >({});
 
   useEffect(() => {
-    const savedData = localStorage.getItem("syncspace_registration_draft")
+    const savedData = localStorage.getItem("syncspace_registration_draft");
     if (savedData) {
       try {
-        const parsed = JSON.parse(savedData)
-        setRegistrationData(parsed.data)
-        setCurrentStep(parsed.step)
-        setCompletedSteps(parsed.completedSteps)
+        const parsed = JSON.parse(savedData);
+        setRegistrationData(parsed.data);
+        setCurrentStep(parsed.step);
+        setCompletedSteps(parsed.completedSteps);
       } catch (error) {
-        console.error("Failed to load saved registration data:", error)
+        console.error("Failed to load saved registration data:", error);
       }
     }
-  }, [])
+  }, []);
 
   const saveProgress = (step: number, data: any, completed: number[]) => {
     const progressData = {
@@ -83,225 +95,212 @@ export default function RegisterPage() {
       data: { ...registrationData, ...data },
       completedSteps: completed,
       timestamp: Date.now(),
-    }
-    localStorage.setItem("syncspace_registration_draft", JSON.stringify(progressData))
-  }
+    };
+    localStorage.setItem(
+      "syncspace_registration_draft",
+      JSON.stringify(progressData)
+    );
+  };
 
   // Step 1 Form
   const step1Form = useForm<Step1Data>({
     resolver: zodResolver(step1Schema),
     defaultValues: registrationData as Step1Data,
     mode: "onChange",
-  })
+  });
 
   // Step 2 Form
   const step2Form = useForm<Step2Data>({
     resolver: zodResolver(step2Schema),
     defaultValues: registrationData as Step2Data,
     mode: "onChange",
-  })
+  });
 
   // Step 3 Form
   const step3Form = useForm<Step3Data>({
     resolver: zodResolver(step3Schema),
     defaultValues: registrationData as Step3Data,
     mode: "onChange",
-  })
+  });
 
   // Step 4 Form
   const step4Form = useForm<Step4Data>({
     resolver: zodResolver(step4Schema),
     defaultValues: registrationData as Step4Data,
     mode: "onChange",
-  })
+  });
 
   const getCurrentForm = () => {
     switch (currentStep) {
       case 1:
-        return step1Form
+        return step1Form;
       case 2:
-        return step2Form
+        return step2Form;
       case 3:
-        return step3Form
+        return step3Form;
       case 4:
-        return step4Form
+        return step4Form;
       default:
-        return step1Form
+        return step1Form;
     }
-  }
+  };
 
   const nextStep = async () => {
-    const form = getCurrentForm()
-    const isValid = await form.trigger()
+    const form = getCurrentForm();
+    const isValid = await form.trigger();
 
     if (!isValid) {
-      toast({
-        title: "Validation Error",
+      toast("Validation Error", {
         description: "Please fix the errors before continuing.",
-        variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    const formData = form.getValues()
-    const newRegistrationData = { ...registrationData, ...formData }
-    setRegistrationData(newRegistrationData)
+    const formData = form.getValues();
+    const newRegistrationData = { ...registrationData, ...formData };
+    setRegistrationData(newRegistrationData);
 
-    const newCompletedSteps = [...completedSteps, currentStep]
-    setCompletedSteps(newCompletedSteps)
+    const newCompletedSteps = [...completedSteps, currentStep];
+    setCompletedSteps(newCompletedSteps);
 
-    saveProgress(currentStep + 1, formData, newCompletedSteps)
+    saveProgress(currentStep + 1, formData, newCompletedSteps);
 
     if (currentStep === 1) {
       // Check for duplicate email
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const emailExists = await checkEmailExists((formData as Step1Data).email)
+        const emailExists = await checkEmailExists(
+          (formData as Step1Data).email
+        );
         if (emailExists) {
-          toast({
-            title: "Email Already Exists",
-            description: "An account with this email already exists. Please use a different email or sign in.",
-            variant: "destructive",
-          })
-          setIsLoading(false)
-          return
+          toast("Email Already Exists", {
+            description:
+              "An account with this email already exists. Please use a different email or sign in.",
+          });
+          setIsLoading(false);
+          return;
         }
       } catch (error) {
-        toast({
-          title: "Error",
+        toast("Error", {
           description: "Failed to verify email. Please try again.",
-          variant: "destructive",
-        })
-        setIsLoading(false)
-        return
+        });
+        setIsLoading(false);
+        return;
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
 
     if (currentStep === 3) {
       // Send verification code
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const result = await sendVerificationCode(newRegistrationData.email!)
+        const result = await sendVerificationCode(newRegistrationData.email!);
         if (result.success) {
-          setVerificationSent(true)
-          toast({
-            title: "Verification Code Sent",
+          setVerificationSent(true);
+          toast("Verification Code Sent", {
             description: result.message,
-            variant: "success",
-          })
+          });
         }
       } catch (error) {
-        toast({
-          title: "Error",
+        toast("Error", {
           description: "Failed to send verification code. Please try again.",
-          variant: "destructive",
-        })
+        });
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
 
-    setCurrentStep(currentStep + 1)
-  }
+    setCurrentStep(currentStep + 1);
+  };
 
   const prevStep = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
+  };
 
   const goToStep = (step: number) => {
     if (completedSteps.includes(step - 1) || step === 1) {
-      setCurrentStep(step)
+      setCurrentStep(step);
     }
-  }
+  };
 
   const handleFinalSubmit = async () => {
-    const form = getCurrentForm()
-    const isValid = await form.trigger()
+    const form = getCurrentForm();
+    const isValid = await form.trigger();
 
     if (!isValid) {
-      toast({
-        title: "Validation Error",
+      toast("Validation Error", {
         description: "Please complete the verification.",
-        variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsLoading(true)
-    const formData = form.getValues()
-    const finalData = { ...registrationData, ...formData } as RegistrationData
+    setIsLoading(true);
+    const formData = form.getValues();
+    const finalData = { ...registrationData, ...formData } as RegistrationData;
 
     try {
       // Verify code first
-      const verificationResult = await verifyCode(finalData.email, (formData as Step4Data).verificationCode)
+      const verificationResult = await verifyCode(
+        finalData.email,
+        (formData as Step4Data).verificationCode
+      );
       if (!verificationResult.success) {
-        toast({
-          title: "Verification Failed",
+        toast("Verification Failed", {
           description: verificationResult.message,
-          variant: "destructive",
-        })
-        setIsLoading(false)
-        return
+        });
+        setIsLoading(false);
+        return;
       }
 
-      const result = await submitRegistration(finalData)
+      const result = await submitRegistration(finalData);
       if (result.success) {
-        toast({
-          title: "Registration Successful",
+        toast("Registration Successful", {
           description: "Your account has been created successfully!",
-          variant: "success",
-        })
+        });
 
-        localStorage.removeItem("syncspace_registration_draft")
+        localStorage.removeItem("syncspace_registration_draft");
 
         setTimeout(() => {
-          window.location.href = "/login"
-        }, 2000)
+          window.location.href = "/login";
+        }, 2000);
       }
     } catch (error) {
-      toast({
-        title: "Registration Failed",
+      toast("Registration Failed", {
         description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      })
+      });
     }
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   const resendVerificationCode = async () => {
-    if (resendCountdown > 0) return
+    if (resendCountdown > 0) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await sendVerificationCode(registrationData.email!)
+      const result = await sendVerificationCode(registrationData.email!);
       if (result.success) {
-        toast({
-          title: "Code Resent",
+        toast("Code Resent", {
           description: "A new verification code has been sent to your email.",
-          variant: "success",
-        })
-        setResendCountdown(60)
+        });
+        setResendCountdown(60);
         const timer = setInterval(() => {
           setResendCountdown((prev) => {
             if (prev <= 1) {
-              clearInterval(timer)
-              return 0
+              clearInterval(timer);
+              return 0;
             }
-            return prev - 1
-          })
-        }, 1000)
+            return prev - 1;
+          });
+        }, 1000);
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast("Error", {
         description: "Failed to resend verification code.",
-        variant: "destructive",
-      })
+      });
     }
-    setIsLoading(false)
-  }
+    setIsLoading(false);
+  };
 
   const renderStep1 = () => (
     <motion.div
@@ -333,7 +332,9 @@ export default function RegisterPage() {
 
       <div className="space-y-2">
         <Label htmlFor="universityId">University</Label>
-        <Select onValueChange={(value) => step1Form.setValue("universityId", value)}>
+        <Select
+          onValueChange={(value) => step1Form.setValue("universityId", value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select your university" />
           </SelectTrigger>
@@ -369,7 +370,11 @@ export default function RegisterPage() {
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {showPassword ? (
+              <EyeOff className="w-5 h-5" />
+            ) : (
+              <Eye className="w-5 h-5" />
+            )}
           </button>
         </div>
         {step1Form.formState.errors.password && (
@@ -396,7 +401,11 @@ export default function RegisterPage() {
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+            {showConfirmPassword ? (
+              <EyeOff className="w-5 h-5" />
+            ) : (
+              <Eye className="w-5 h-5" />
+            )}
           </button>
         </div>
         {step1Form.formState.errors.confirmPassword && (
@@ -412,7 +421,9 @@ export default function RegisterPage() {
           <Checkbox
             id="termsAccepted"
             checked={step1Form.watch("termsAccepted") || false}
-            onCheckedChange={(checked) => step1Form.setValue("termsAccepted", checked === true)}
+            onCheckedChange={(checked) =>
+              step1Form.setValue("termsAccepted", checked === true)
+            }
           />
           <Label htmlFor="termsAccepted" className="text-sm">
             I agree to the{" "}
@@ -432,7 +443,9 @@ export default function RegisterPage() {
           <Checkbox
             id="privacyAccepted"
             checked={step1Form.watch("privacyAccepted") || false}
-            onCheckedChange={(checked) => step1Form.setValue("privacyAccepted", checked === true)}
+            onCheckedChange={(checked) =>
+              step1Form.setValue("privacyAccepted", checked === true)
+            }
           />
           <Label htmlFor="privacyAccepted" className="text-sm">
             I agree to the{" "}
@@ -449,7 +462,7 @@ export default function RegisterPage() {
         )}
       </div>
     </motion.div>
-  )
+  );
 
   const renderStep2 = () => (
     <motion.div
@@ -464,7 +477,12 @@ export default function RegisterPage() {
           <Label htmlFor="firstName">First Name</Label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input id="firstName" placeholder="John" className="pl-10" {...step2Form.register("firstName")} />
+            <Input
+              id="firstName"
+              placeholder="John"
+              className="pl-10"
+              {...step2Form.register("firstName")}
+            />
           </div>
           {step2Form.formState.errors.firstName && (
             <p className="text-red-600 text-sm flex items-center">
@@ -478,7 +496,12 @@ export default function RegisterPage() {
           <Label htmlFor="lastName">Last Name</Label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <Input id="lastName" placeholder="Doe" className="pl-10" {...step2Form.register("lastName")} />
+            <Input
+              id="lastName"
+              placeholder="Doe"
+              className="pl-10"
+              {...step2Form.register("lastName")}
+            />
           </div>
           {step2Form.formState.errors.lastName && (
             <p className="text-red-600 text-sm flex items-center">
@@ -496,7 +519,10 @@ export default function RegisterPage() {
           maxSize={2}
           onFileSelect={(files) => {
             if (files.length > 0) {
-              step2Form.setValue("profilePicture", URL.createObjectURL(files[0]))
+              step2Form.setValue(
+                "profilePicture",
+                URL.createObjectURL(files[0])
+              );
             }
           }}
         />
@@ -505,7 +531,9 @@ export default function RegisterPage() {
       <div className="space-y-2">
         <Label htmlFor="phoneNumber">Phone Number</Label>
         <div className="flex space-x-2">
-          <Select onValueChange={(value) => step2Form.setValue("countryCode", value)}>
+          <Select
+            onValueChange={(value) => step2Form.setValue("countryCode", value)}
+          >
             <SelectTrigger className="w-24">
               <SelectValue placeholder="+1" />
             </SelectTrigger>
@@ -536,7 +564,9 @@ export default function RegisterPage() {
 
       <div className="space-y-2">
         <Label htmlFor="academicYear">Academic Year</Label>
-        <Select onValueChange={(value) => step2Form.setValue("academicYear", value)}>
+        <Select
+          onValueChange={(value) => step2Form.setValue("academicYear", value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select your academic year" />
           </SelectTrigger>
@@ -558,7 +588,9 @@ export default function RegisterPage() {
 
       <div className="space-y-2">
         <Label htmlFor="department">Department</Label>
-        <Select onValueChange={(value) => step2Form.setValue("department", value)}>
+        <Select
+          onValueChange={(value) => step2Form.setValue("department", value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="Select your department" />
           </SelectTrigger>
@@ -578,7 +610,7 @@ export default function RegisterPage() {
         )}
       </div>
     </motion.div>
-  )
+  );
 
   const renderStep3 = () => (
     <motion.div
@@ -617,7 +649,9 @@ export default function RegisterPage() {
             <Card
               key={role.value}
               className={`cursor-pointer transition-all ${role.color} ${
-                step3Form.watch("role") === role.value ? "ring-2 ring-blue-500" : ""
+                step3Form.watch("role") === role.value
+                  ? "ring-2 ring-blue-500"
+                  : ""
               }`}
               onClick={() => step3Form.setValue("role", role.value as any)}
             >
@@ -643,20 +677,34 @@ export default function RegisterPage() {
 
       {/* Role-specific fields */}
       {step3Form.watch("role") === "student" && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="studentId">Student ID</Label>
-            <Input id="studentId" placeholder="Enter your student ID" {...step3Form.register("studentId")} />
+            <Input
+              id="studentId"
+              placeholder="Enter your student ID"
+              {...step3Form.register("studentId")}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="graduationYear">Expected Graduation Year</Label>
-            <Input id="graduationYear" placeholder="2025" {...step3Form.register("graduationYear")} />
+            <Input
+              id="graduationYear"
+              placeholder="2025"
+              {...step3Form.register("graduationYear")}
+            />
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
               id="isTeamLead"
               checked={step3Form.watch("isTeamLead") || false}
-              onCheckedChange={(checked) => step3Form.setValue("isTeamLead", checked === true)}
+              onCheckedChange={(checked) =>
+                step3Form.setValue("isTeamLead", checked === true)
+              }
             />
             <Label htmlFor="isTeamLead">I want to be a Team Lead</Label>
           </div>
@@ -664,16 +712,28 @@ export default function RegisterPage() {
       )}
 
       {step3Form.watch("role") === "professor" && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="employeeId">Employee ID</Label>
-            <Input id="employeeId" placeholder="Enter your employee ID" {...step3Form.register("employeeId")} />
+            <Input
+              id="employeeId"
+              placeholder="Enter your employee ID"
+              {...step3Form.register("employeeId")}
+            />
           </div>
         </motion.div>
       )}
 
       {step3Form.watch("role") === "admin" && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
           <div className="space-y-2">
             <Label htmlFor="adminPosition">Administrative Position</Label>
             <Input
@@ -689,15 +749,15 @@ export default function RegisterPage() {
               multiple
               maxSize={5}
               onFileSelect={(files) => {
-                const fileNames = files.map((f) => f.name)
-                step3Form.setValue("verificationDocuments", fileNames)
+                const fileNames = files.map((f) => f.name);
+                step3Form.setValue("verificationDocuments", fileNames);
               }}
             />
           </div>
         </motion.div>
       )}
     </motion.div>
-  )
+  );
 
   const renderStep4 = () => (
     <motion.div
@@ -711,7 +771,8 @@ export default function RegisterPage() {
         <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
         <h3 className="text-xl font-semibold">Verify Your Email</h3>
         <p className="text-gray-600">
-          We've sent a 6-digit verification code to <span className="font-medium">{registrationData.email}</span>
+          We've sent a 6-digit verification code to{" "}
+          <span className="font-medium">{registrationData.email}</span>
         </p>
       </div>
 
@@ -741,26 +802,38 @@ export default function RegisterPage() {
             disabled={resendCountdown > 0 || isLoading}
             className="text-blue-600 hover:text-blue-700 font-medium disabled:text-gray-400"
           >
-            {resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend Code"}
+            {resendCountdown > 0
+              ? `Resend in ${resendCountdown}s`
+              : "Resend Code"}
           </button>
         </div>
       </div>
     </motion.div>
-  )
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-2xl">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="text-center mb-8">
             <div className="flex items-center justify-center space-x-2 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">SyncSpace</span>
+              <span className="text-2xl font-bold text-gray-900">
+                SyncSpace
+              </span>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Your Account</h1>
-            <p className="text-gray-600">Join the university project management platform</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Create Your Account
+            </h1>
+            <p className="text-gray-600">
+              Join the university project management platform
+            </p>
           </div>
 
           {/* Progress Indicator */}
@@ -779,10 +852,13 @@ export default function RegisterPage() {
                 Step {currentStep}: {stepLabels[currentStep - 1]}
               </CardTitle>
               <CardDescription>
-                {currentStep === 1 && "Create your account with university credentials"}
+                {currentStep === 1 &&
+                  "Create your account with university credentials"}
                 {currentStep === 2 && "Complete your profile information"}
-                {currentStep === 3 && "Select your role and provide verification details"}
-                {currentStep === 4 && "Verify your email address to complete registration"}
+                {currentStep === 3 &&
+                  "Select your role and provide verification details"}
+                {currentStep === 4 &&
+                  "Verify your email address to complete registration"}
               </CardDescription>
             </CardHeader>
 
@@ -852,14 +928,18 @@ export default function RegisterPage() {
 
           {/* Sign In Link */}
           <div className="text-center mt-6">
-            <span className="text-sm text-gray-600">Already have an account? </span>
-            <Link href="/login" className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors">
+            <span className="text-sm text-gray-600">
+              Already have an account?{" "}
+            </span>
+            <Link
+              href="/login"
+              className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            >
               Sign In
             </Link>
           </div>
         </motion.div>
       </div>
     </div>
-  )
+  );
 }
-
