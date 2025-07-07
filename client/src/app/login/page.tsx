@@ -1,7 +1,6 @@
 "use client";
-
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +25,7 @@ import {
   AlertCircle,
   Chrome,
   Building,
+  ArrowLeft,
 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -35,6 +35,8 @@ import {
   authenticateUser,
   checkPasswordStrength,
 } from "@/lib/auth";
+import { useUser } from "@/context/Authcontext";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -47,12 +49,20 @@ export default function LoginPage() {
     feedback: "",
     color: "",
   });
-  const [showFirstTimeFields, setShowFirstTimeFields] = useState(false);
+
+  useEffect(() => {
+    if (failedAttempts >= 3) {
+      setShowCaptcha(true);
+    }
+  }, [failedAttempts]);
+
+  const { setUser } = useUser();
   const {
     register,
     handleSubmit,
     watch,
     formState: { errors, isValid },
+    control,
     setError,
     clearErrors,
   } = useForm<LoginFormData>({
@@ -61,22 +71,14 @@ export default function LoginPage() {
   });
 
   const watchedPassword = watch("password", "");
-  const watchedEmail = watch("email", "");
-
+  const router = useRouter();
   useEffect(() => {
     if (watchedPassword) {
       setPasswordStrength(checkPasswordStrength(watchedPassword));
     }
   }, [watchedPassword]);
 
-  // useEffect(() => {
-  //   if (failedAttempts >= 3) {
-  //     setShowCaptcha(false);
-  //   }
-  // }, [failedAttempts]);
-
   const onSubmit = async (data: LoginFormData) => {
-    alert("Submitting login data...");
     if (showCaptcha && !captchaVerified) {
       toast.error("Please complete the security verification.");
       return;
@@ -89,27 +91,21 @@ export default function LoginPage() {
       const result = await authenticateUser(data);
 
       if (result.success && result.user) {
+        setUser(result.user);
         toast.success(`Welcome back, ${result.user.name}!`);
-
-        if (data.rememberMe) {
-          localStorage.setItem("syncspace_token", result.token!);
-        } else {
-          sessionStorage.setItem("syncspace_token", result.token!);
-        }
-
         setTimeout(() => {
           switch (result.user?.role) {
             case "admin":
-              window.location.href = "/admin/dashboard";
+              router.push("/admin-dashboard");
               break;
             case "professor":
-              window.location.href = "/professor/dashboard";
+              router.push("/professor-dashboard");
               break;
             case "team_lead":
-              window.location.href = "/team-lead/dashboard";
+              router.push("/team-lead-dashboard");
               break;
             default:
-              window.location.href = "/student/dashboard";
+              router.push("/student-dashboard");
           }
         }, 1500);
       } else {
@@ -136,6 +132,12 @@ export default function LoginPage() {
   return (
     <>
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Link href="/" className="absolute top-4 right-4 px-4 py-2">
+          <Button variant="outline">
+            <ArrowLeft />
+            Back to Home
+          </Button>
+        </Link>
         <motion.div
           className="w-full max-w-md"
           initial={{ opacity: 0, y: 20 }}
@@ -270,47 +272,31 @@ export default function LoginPage() {
                   )}
                 </div>
 
-                {/* University Code (First-time users) */}
-                {showFirstTimeFields && (
-                  <motion.div
-                    className="space-y-2"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                  >
-                    <Label
-                      htmlFor="universityCode"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      University Code (Optional)
-                    </Label>
-                    <div className="relative">
-                      <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                      <Input
-                        id="universityCode"
-                        type="text"
-                        placeholder="Enter your university code"
-                        className="pl-10"
-                        {...register("universityCode")}
-                      />
-                    </div>
-                  </motion.div>
-                )}
-
                 {/* Captcha */}
                 <Captcha show={showCaptcha} onVerify={setCaptchaVerified} />
 
                 {/* Remember Me */}
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="rememberMe" {...register("rememberMe")} />
-                    <Label
-                      htmlFor="rememberMe"
-                      className="text-sm text-gray-600 cursor-pointer"
-                    >
-                      Remember me
-                    </Label>
-                  </div>
+                  <Controller
+                    control={control}
+                    name="rememberMe"
+                    defaultValue={false}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-2">
+                        <Checkbox
+                          id="rememberMe"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                        <Label
+                          htmlFor="rememberMe"
+                          className="text-sm text-gray-600 cursor-pointer"
+                        >
+                          Remember me
+                        </Label>
+                      </div>
+                    )}
+                  />
                   <Link
                     href="/forgot-password"
                     className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
@@ -392,37 +378,8 @@ export default function LoginPage() {
                   Create Account
                 </Link>
               </div>
-
-              {/* First Time Toggle */}
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setShowFirstTimeFields(!showFirstTimeFields)}
-                  className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-                >
-                  {showFirstTimeFields ? "Hide" : "Show"} first-time user
-                  options
-                </button>
-              </div>
             </CardContent>
           </Card>
-
-          {/* Demo Credentials */}
-          {/* <motion.div
-            className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            <h4 className="text-sm font-medium text-blue-900 mb-2">
-              Demo Credentials:
-            </h4>
-            <div className="text-xs text-blue-700 space-y-1">
-              <div>Admin: admin@university.edu / password123</div>
-              <div>Professor: prof.smith@university.edu / password123</div>
-              <div>Student: student@university.edu / password123</div>
-            </div>
-          </motion.div> */}
         </motion.div>
       </div>
     </>

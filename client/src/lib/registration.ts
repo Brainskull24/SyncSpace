@@ -33,6 +33,7 @@ export const departments = [
 ];
 
 export const academicYears = [
+  "Not Applicable (Professor/Admin)",
   "1st Year",
   "2nd Year",
   "3rd Year",
@@ -50,6 +51,7 @@ export const step1Schema = z
       .email("Please enter a valid email address")
       .refine((email) => {
         const universityDomains = [
+          "@cuchd.in",
           ".edu",
           ".ac.uk",
           ".edu.au",
@@ -92,7 +94,14 @@ export const step2Schema = z.object({
     .min(1, "Last name is required")
     .min(2, "Last name must be at least 2 characters"),
   profilePicture: z.string().optional(),
-  phoneNumber: z.string().min(1, "Phone number is required"),
+  phoneNumber: z
+    .string()
+    .trim()
+    .regex(/^\d{10}$/, {
+      message:
+        "Phone number must be exactly 10 digits and contain only numbers",
+    }),
+
   countryCode: z.string().min(1, "Country code is required"),
   academicYear: z.string().min(1, "Please select your academic year"),
   department: z.string().min(1, "Please select your department"),
@@ -149,9 +158,10 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
 };
 
 export const sendVerificationCode = async (
-  email: string
+  email: string,
+  name: string
 ): Promise<{ success: boolean; message: string }> => {
-  const res = await api.post("/auth/send-code", { email });
+  const res = await api.post("/auth/send-code", { email, name });
   return res.data;
 };
 

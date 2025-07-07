@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   GraduationCap,
   Users,
@@ -20,21 +20,40 @@ import {
   CheckCircle,
   Clock,
   Target,
-} from "lucide-react"
-import Link from "next/link"
-import { useState } from "react"
-import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
+  Twitter,
+  Linkedin,
+  Youtube,
+  MessageCircle,
+} from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useUser } from "@/context/Authcontext";
+import api from "@/lib/axios";
 
 export default function LandingPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
-
+  const { user } = useUser();
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.6 },
-  }
+  };
+
+  const [loading, setLoading] = useState(false);
+
+  const logout = async () => {
+    setLoading(true);
+    try {
+      await api.get("/auth/logout");
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Logout failed:", err);
+      setLoading(false);
+    }
+  };
 
   const staggerChildren = {
     animate: {
@@ -42,7 +61,7 @@ export default function LandingPage() {
         staggerChildren: 0.1,
       },
     },
-  }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -65,30 +84,71 @@ export default function LandingPage() {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-8">
-              <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link
+                href="#features"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
                 Features
               </Link>
-              <Link href="#roles" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link
+                href="#roles"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
                 Roles
               </Link>
-              <Link href="#benefits" className="text-gray-600 hover:text-gray-900 transition-colors">
+              <Link
+                href="#benefits"
+                className="text-gray-600 hover:text-gray-900 transition-colors"
+              >
                 Benefits
               </Link>
             </nav>
 
             {/* Auth Buttons */}
-            <div className="hidden md:flex items-center space-x-4">
-              <Button variant="ghost" className="text-gray-600 hover:text-gray-900" onClick={() => router.push("/login")}>
-                Login
-              </Button>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                Get Started
-              </Button>
-            </div>
+            {user ? (
+              <div className="hidden md:flex items-center space-x-4">
+                <Button
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  onClick={() => {
+                    router.push(`/${user.role}-dashboard`);
+                  }}
+                >
+                  Dashboard
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="text-gray-600 hover:text-gray-900"
+                  onClick={logout}
+                  disabled={loading}
+                >
+                  {loading ? "Logging out..." : "Logout"}
+                </Button>
+              </div>
+            ) : (
+              <div className="hidden md:flex items-center space-x-4">
+                <Button
+                  variant="ghost"
+                  className="text-gray-600 hover:text-gray-900"
+                  onClick={() => router.push("/login")}
+                >
+                  Login
+                </Button>
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  Get Started
+                </Button>
+              </div>
+            )}
 
             {/* Mobile Menu Button */}
-            <button className="md:hidden p-2" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            <button
+              className="md:hidden p-2"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
             </button>
           </div>
 
@@ -101,20 +161,31 @@ export default function LandingPage() {
               exit={{ opacity: 0, height: 0 }}
             >
               <nav className="flex flex-col space-y-4">
-                <Link href="#features" className="text-gray-600 hover:text-gray-900 transition-colors">
+                <Link
+                  href="#features"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
                   Features
                 </Link>
-                <Link href="#roles" className="text-gray-600 hover:text-gray-900 transition-colors">
+                <Link
+                  href="#roles"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
                   Roles
                 </Link>
-                <Link href="#benefits" className="text-gray-600 hover:text-gray-900 transition-colors">
+                <Link
+                  href="#benefits"
+                  className="text-gray-600 hover:text-gray-900 transition-colors"
+                >
                   Benefits
                 </Link>
                 <div className="flex flex-col space-y-2 pt-4 border-t border-gray-100">
                   <Button variant="ghost" className="justify-start">
                     Login
                   </Button>
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600">Get Started</Button>
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600">
+                    Get Started
+                  </Button>
                 </div>
               </nav>
             </motion.div>
@@ -132,7 +203,9 @@ export default function LandingPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <Badge className="mb-4 bg-blue-100 text-blue-700 hover:bg-blue-100">🎓 Built for Universities</Badge>
+              <Badge className="mb-4 bg-blue-100 text-blue-700 hover:bg-blue-100">
+                🎓 Built for Universities
+              </Badge>
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Streamline University{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
@@ -140,16 +213,22 @@ export default function LandingPage() {
                 </span>
               </h1>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                The structured, role-based platform that simplifies how academic teams apply, collaborate, and execute
-                semester-long technical projects
+                The structured, role-based platform that simplifies how academic
+                teams apply, collaborate, and execute semester-long technical
+                projects
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-lg px-8 py-3"
+                  onClick={() => {
+                    user
+                      ? router.push(`/${user.role}-dashboard`)
+                      : router.push("/register");
+                  }}
                 >
-                  Start Free Trial
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  {!user ? "Join Now" : "Explore Dashboard"}
+                  {!user ? null : <ArrowRight className="w-5 h-5" />}
                 </Button>
                 <Button
                   size="lg"
@@ -177,15 +256,21 @@ export default function LandingPage() {
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
                     <Users className="w-5 h-5 text-blue-600" />
-                    <span className="text-sm text-gray-600">Team Formation</span>
+                    <span className="text-sm text-gray-600">
+                      Team Formation
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Workflow className="w-5 h-5 text-purple-600" />
-                    <span className="text-sm text-gray-600">Project Phases</span>
+                    <span className="text-sm text-gray-600">
+                      Project Phases
+                    </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <CheckCircle className="w-5 h-5 text-green-600" />
-                    <span className="text-sm text-gray-600">Real-time Collaboration</span>
+                    <span className="text-sm text-gray-600">
+                      Real-time Collaboration
+                    </span>
                   </div>
                 </div>
               </div>
@@ -200,10 +285,12 @@ export default function LandingPage() {
       <section id="features" className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div className="text-center mb-16" {...fadeInUp}>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Why Choose SyncSpace?</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Why Choose SyncSpace?
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Built specifically for academic environments with features that enhance collaboration and streamline
-              project workflows
+              Built specifically for academic environments with features that
+              enhance collaboration and streamline project workflows
             </p>
           </motion.div>
 
@@ -220,10 +307,13 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <Workflow className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Structured Workflow</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    Structured Workflow
+                  </h3>
                   <p className="text-gray-600 leading-relaxed">
-                    Phase-based project execution with clear milestones, deadlines, and deliverables that keep teams on
-                    track throughout the semester
+                    Phase-based project execution with clear milestones,
+                    deadlines, and deliverables that keep teams on track
+                    throughout the semester
                   </p>
                 </CardContent>
               </Card>
@@ -235,10 +325,13 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <Shield className="w-8 h-8 text-purple-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Role-Based Access</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    Role-Based Access
+                  </h3>
                   <p className="text-gray-600 leading-relaxed">
-                    Secure, hierarchical permissions for Admin, Professor, Team Lead, and Member roles ensuring
-                    appropriate access and responsibility levels
+                    Secure, hierarchical permissions for Admin, Professor, Team
+                    Lead, and Member roles ensuring appropriate access and
+                    responsibility levels
                   </p>
                 </CardContent>
               </Card>
@@ -250,10 +343,12 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <Zap className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">Real-Time Collaboration</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                    Real-Time Collaboration
+                  </h3>
                   <p className="text-gray-600 leading-relaxed">
-                    Live feedback, file sharing, and instant communication tools that keep academic teams connected and
-                    productive
+                    Live feedback, file sharing, and instant communication tools
+                    that keep academic teams connected and productive
                   </p>
                 </CardContent>
               </Card>
@@ -266,9 +361,12 @@ export default function LandingPage() {
       <section id="roles" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div className="text-center mb-16" {...fadeInUp}>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Built for Every Academic Role</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Built for Every Academic Role
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Tailored experiences and permissions for each stakeholder in the university project ecosystem
+              Tailored experiences and permissions for each stakeholder in the
+              university project ecosystem
             </p>
           </motion.div>
 
@@ -285,8 +383,12 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-gradient-to-br from-red-100 to-red-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <Crown className="w-8 h-8 text-red-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">University Admin</h3>
-                  <p className="text-sm text-gray-600 mb-4">System oversight and project bucket management</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    University Admin
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    System oversight and project bucket management
+                  </p>
                   <ul className="text-xs text-gray-500 space-y-1">
                     <li>• Manage project categories</li>
                     <li>• System configuration</li>
@@ -302,8 +404,12 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <BookOpen className="w-8 h-8 text-blue-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Professor</h3>
-                  <p className="text-sm text-gray-600 mb-4">Project supervision and student evaluation</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Professor
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Project supervision and student evaluation
+                  </p>
                   <ul className="text-xs text-gray-500 space-y-1">
                     <li>• Review applications</li>
                     <li>• Monitor progress</li>
@@ -319,8 +425,12 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-purple-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <UserCheck className="w-8 h-8 text-purple-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Team Lead</h3>
-                  <p className="text-sm text-gray-600 mb-4">Team formation and project application</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Team Lead
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Team formation and project application
+                  </p>
                   <ul className="text-xs text-gray-500 space-y-1">
                     <li>• Form teams</li>
                     <li>• Submit applications</li>
@@ -336,8 +446,12 @@ export default function LandingPage() {
                   <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-green-200 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <User className="w-8 h-8 text-green-600" />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">Team Member</h3>
-                  <p className="text-sm text-gray-600 mb-4">Task execution and collaboration</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                    Team Member
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Task execution and collaboration
+                  </p>
                   <ul className="text-xs text-gray-500 space-y-1">
                     <li>• Complete assignments</li>
                     <li>• Collaborate actively</li>
@@ -354,9 +468,12 @@ export default function LandingPage() {
       <section id="benefits" className="py-20 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div className="text-center mb-16" {...fadeInUp}>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">Transform Your Academic Projects</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4">
+              Transform Your Academic Projects
+            </h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Experience the difference with a platform designed specifically for university project management
+              Experience the difference with a platform designed specifically
+              for university project management
             </p>
           </motion.div>
 
@@ -373,9 +490,12 @@ export default function LandingPage() {
                     <Clock className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Save Time & Reduce Complexity</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Save Time & Reduce Complexity
+                    </h3>
                     <p className="text-gray-600">
-                      Eliminate scattered communication and missed deadlines with centralized project management
+                      Eliminate scattered communication and missed deadlines
+                      with centralized project management
                     </p>
                   </div>
                 </div>
@@ -385,9 +505,12 @@ export default function LandingPage() {
                     <Target className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Improve Project Success Rates</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Improve Project Success Rates
+                    </h3>
                     <p className="text-gray-600">
-                      Structured workflows and clear accountability lead to higher completion rates and better outcomes
+                      Structured workflows and clear accountability lead to
+                      higher completion rates and better outcomes
                     </p>
                   </div>
                 </div>
@@ -397,9 +520,12 @@ export default function LandingPage() {
                     <Users className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">Enhanced Collaboration</h3>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Enhanced Collaboration
+                    </h3>
                     <p className="text-gray-600">
-                      Foster better teamwork with integrated communication tools and shared workspaces
+                      Foster better teamwork with integrated communication tools
+                      and shared workspaces
                     </p>
                   </div>
                 </div>
@@ -415,31 +541,47 @@ export default function LandingPage() {
             >
               <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-2xl p-8 border border-gray-100">
                 <div className="text-center mb-6">
-                  <h4 className="text-2xl font-bold text-gray-900 mb-2">Ready to Get Started?</h4>
-                  <p className="text-gray-600">Join universities already using SyncSpace</p>
+                  <h4 className="text-2xl font-bold text-gray-900 mb-2">
+                    Ready to Get Started?
+                  </h4>
+                  <p className="text-gray-600">
+                    Join universities already using SyncSpace
+                  </p>
                 </div>
                 <div className="space-y-4">
                   <Button
                     size="lg"
                     className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    onClick={() => {
+                      user
+                        ? router.push(`/${user.role}-dashboard`)
+                        : router.push("/register");
+                    }}
                   >
-                    Start Your Free Trial
+                    {!user ? "Join Now" : "Explore your Workspace"}
+                    {!user ? null : <ArrowRight className="w-5 h-5" />}
                   </Button>
-                  <Button size="lg" variant="outline" className="w-full border-2 bg-transparent">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full border-2 bg-transparent"
+                  >
                     Schedule a Demo
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500 text-center mt-4">No credit card required • 14-day free trial</p>
+                <p className="text-xs text-gray-500 text-center mt-4">
+                  No credit card required • 14-day free trial
+                </p>
               </div>
             </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-6 gap-8">
+            {/* Branding */}
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
@@ -447,78 +589,180 @@ export default function LandingPage() {
                 </div>
                 <span className="text-xl font-bold">SyncSpace</span>
               </div>
-              <p className="text-gray-400 text-sm">Streamlining university project management for academic success.</p>
+              <p className="text-gray-400 text-sm">
+                Streamlining university project management for academic success.
+              </p>
+              {/* Social Icons */}
+              <div className="flex space-x-4 mt-6">
+                <Link href="#" className="text-gray-400 hover:text-white">
+                  <Linkedin className="w-5 h-5" />
+                </Link>
+                <Link href="#" className="text-gray-400 hover:text-white">
+                  <Twitter className="w-5 h-5" />
+                </Link>
+                <Link href="#" className="text-gray-400 hover:text-white">
+                  <Youtube className="w-5 h-5" />
+                </Link>
+                <Link href="#" className="text-gray-400 hover:text-white">
+                  <MessageCircle className="w-5 h-5" />
+                </Link>
+              </div>
             </div>
 
+            {/* Product */}
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
+                  <Link href="#" className="hover:text-white">
                     Features
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
+                  <Link href="#" className="hover:text-white">
                     Pricing
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Demo
+                  <Link href="#" className="hover:text-white">
+                    Live Demo
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Changelog
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Integrations
                   </Link>
                 </li>
               </ul>
             </div>
 
+            {/* Resources */}
             <div>
-              <h4 className="font-semibold mb-4">Support</h4>
+              <h4 className="font-semibold mb-4">Resources</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
+                  <Link href="#" className="hover:text-white">
                     Documentation
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
+                  <Link href="#" className="hover:text-white">
                     Help Center
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Contact
+                  <Link href="#" className="hover:text-white">
+                    Tutorials
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Community Forum
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Blog / Updates
                   </Link>
                 </li>
               </ul>
             </div>
 
+            {/* Company */}
             <div>
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    About
+                  <Link href="#" className="hover:text-white">
+                    About Us
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Privacy
+                  <Link href="#" className="hover:text-white">
+                    Partners
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-white transition-colors">
-                    Terms
+                  <Link href="#" className="hover:text-white">
+                    Campus Ambassadors
                   </Link>
                 </li>
               </ul>
             </div>
+
+            {/* Legal */}
+            <div>
+              <h4 className="font-semibold mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Terms of Use
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Cookie Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Security Practices
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            
+            {/* Support */}
+            <div>
+              <h4 className="font-semibold mb-4">Support</h4>
+              <ul className="space-y-2 text-sm text-gray-400 mb-6">
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Contact Us
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Report a Bug
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Request a Feature
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    FAQ
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#" className="hover:text-white">
+                    Feedback Form
+                  </Link>
+                </li>
+              </ul>
+              {/* Newsletter */}
+            </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            <p>&copy; {new Date().getFullYear()} SyncSpace. All rights reserved.</p>
+          <div className="border-t border-gray-800 mt-12 pt-6 text-center text-sm text-gray-400">
+            <p>
+              &copy; {new Date().getFullYear()} SyncSpace. All rights reserved.
+            </p>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }

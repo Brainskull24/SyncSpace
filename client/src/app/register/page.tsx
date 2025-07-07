@@ -194,7 +194,7 @@ export default function RegisterPage() {
       // Send verification code
       setIsLoading(true);
       try {
-        const result = await sendVerificationCode(newRegistrationData.email!);
+        const result = await sendVerificationCode(newRegistrationData.email!, newRegistrationData.firstName!);
         if (result.success) {
           setVerificationSent(true);
           toast("Verification Code Sent", {
@@ -278,7 +278,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const result = await sendVerificationCode(registrationData.email!);
+      const result = await sendVerificationCode(registrationData.email!, registrationData.firstName!);
       if (result.success) {
         toast("Code Resent", {
           description: "A new verification code has been sent to your email.",
@@ -333,6 +333,7 @@ export default function RegisterPage() {
       <div className="space-y-2">
         <Label htmlFor="universityId">University</Label>
         <Select
+          value={step1Form.watch("universityId")}
           onValueChange={(value) => step1Form.setValue("universityId", value)}
         >
           <SelectTrigger>
@@ -427,7 +428,7 @@ export default function RegisterPage() {
           />
           <Label htmlFor="termsAccepted" className="text-sm">
             I agree to the{" "}
-            <Link href="/terms" className="text-blue-600 hover:text-blue-700">
+            <Link href="/terms-of-service" className="text-blue-600 hover:text-blue-700">
               Terms of Service
             </Link>
           </Label>
@@ -449,7 +450,7 @@ export default function RegisterPage() {
           />
           <Label htmlFor="privacyAccepted" className="text-sm">
             I agree to the{" "}
-            <Link href="/privacy" className="text-blue-600 hover:text-blue-700">
+            <Link href="/privacy-policy" className="text-blue-600 hover:text-blue-700">
               Privacy Policy
             </Link>
           </Label>
@@ -535,13 +536,10 @@ export default function RegisterPage() {
             onValueChange={(value) => step2Form.setValue("countryCode", value)}
           >
             <SelectTrigger className="w-24">
-              <SelectValue placeholder="+1" />
+              <SelectValue placeholder="+91" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="+1">+1</SelectItem>
-              <SelectItem value="+44">+44</SelectItem>
               <SelectItem value="+91">+91</SelectItem>
-              <SelectItem value="+61">+61</SelectItem>
             </SelectContent>
           </Select>
           <div className="relative flex-1">
@@ -565,6 +563,7 @@ export default function RegisterPage() {
       <div className="space-y-2">
         <Label htmlFor="academicYear">Academic Year</Label>
         <Select
+          value={step2Form.watch("academicYear")}
           onValueChange={(value) => step2Form.setValue("academicYear", value)}
         >
           <SelectTrigger>
@@ -589,6 +588,7 @@ export default function RegisterPage() {
       <div className="space-y-2">
         <Label htmlFor="department">Department</Label>
         <Select
+          value={step2Form.watch("department")}
           onValueChange={(value) => step2Form.setValue("department", value)}
         >
           <SelectTrigger>
@@ -814,6 +814,12 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4 max-w-2xl">
+        <Link href="/" className="absolute top-4 right-4 px-4 py-2">
+          <Button variant="outline">
+            <ArrowLeft />
+            Back to Home
+          </Button>
+        </Link>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

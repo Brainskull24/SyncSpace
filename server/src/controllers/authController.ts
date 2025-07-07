@@ -1,8 +1,25 @@
 import { Request, Response } from "express";
 import User from "../models/userModel";
 import JWT from "jsonwebtoken";
+import { sendEmail } from "../middlewares/email";
+import { z } from "zod";
+import { getVerificationEmailHtml } from "../utils/emailTemplates";
 
 const verificationCodes: Record<string, string> = {};
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+const verifyResetCodeSchema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string(),
+  password: z.string().min(6),
+});
 
 export const checkEmail = async (req: Request, res: Response) => {
   const { email } = req.body;
@@ -11,10 +28,12 @@ export const checkEmail = async (req: Request, res: Response) => {
 };
 
 export const sendCode = async (req: Request, res: Response) => {
-  const { email } = req.body;
+  const { email, name } = req.body;
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   verificationCodes[email] = code;
-  // TODO: send email logic here (nodemailer / SendGrid etc.)
+  const html = getVerificationEmailHtml(name, code);
+  
+  await sendEmail(email, "Verify Email Address", html);
   console.log(`Verification code for ${email}: ${code}`);
   return res.json({ success: true, message: "Verification code sent" });
 };
@@ -79,7 +98,8 @@ export const registerUser = async (req: Request, res: Response) => {
 };
 
 export const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email, password, rememberMe } = req.body;
+
   const user = await User.findOne({ email });
   if (!user) {
     return res
@@ -98,9 +118,11 @@ export const login = async (req: Request, res: Response) => {
       .status(500)
       .json({ success: false, message: "JWT secret is not configured" });
   }
+
   const token = JWT.sign({ _id: user._id }, process.env.JWT_SECRET, {
     expiresIn: "7d",
   });
+
   if (!token) {
     return res
       .status(500)
@@ -108,6 +130,14 @@ export const login = async (req: Request, res: Response) => {
   }
 
   user.token = token;
+  await user.save();
+
+  res.cookie("syncspace_token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    maxAge: rememberMe ? 7 * 24 * 60 * 60 * 1000 : undefined,
+  });
 
   return res.json({
     success: true,
@@ -118,6 +148,95 @@ export const login = async (req: Request, res: Response) => {
       role: user.role,
       university: user.universityId,
     },
-    token,
   });
+};
+
+export const logout = (req: Request, res: Response) => {
+  res.clearCookie("syncspace_token");
+  return res.json({ success: true, message: "Logged out" });
+};
+
+export const getProfile = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.user._id).select("-password -token");
+
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    return res.json({
+      success: true,
+      user,
+    });
+  } catch {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+export const forgotPassword = async (req: Request, res: Response) => {
+  const parsed = forgotPasswordSchema.safeParse(req.body);
+  if (!parsed.success)
+    return res
+      .status(400)
+      .json({ success: false, error: "Invalid email format" });
+
+  const { email } = parsed.data;
+  const user = await User.findOne({ email });
+  if (!user)
+    return res.status(404).json({ success: false, error: "User not found" });
+
+  const code = Math.floor(100000 + Math.random() * 900000).toString();
+  verificationCodes[email] = code;
+
+  await sendEmail(
+    email,
+    "Your Reset Code",
+    `Your verification code is: ${code}`
+  );
+
+  return res.json({ success: true });
+};
+
+export const verifyResetCode = async (req: Request, res: Response) => {
+  const parsed = verifyResetCodeSchema.safeParse(req.body);
+  if (!parsed.success)
+    return res.status(400).json({ success: false, error: "Invalid input" });
+
+  const { email, code } = parsed.data;
+  const storedCode = verificationCodes[email];
+  if (storedCode !== code)
+    return res.status(401).json({ success: false, error: "Invalid code" });
+
+  const token = JWT.sign({ email }, process.env.JWT_SECRET!, {
+    expiresIn: "15m",
+  });
+  delete verificationCodes[email];
+
+  return res.json({ success: true, token });
+};
+
+export const resetPassword = async (req: Request, res: Response) => {
+  const parsed = resetPasswordSchema.safeParse(req.body);
+  if (!parsed.success)
+    return res.status(400).json({ success: false, error: "Invalid input" });
+
+  const { token, password } = parsed.data;
+
+  try {
+    const payload = JWT.verify(token, process.env.JWT_SECRET!) as {
+      email: string;
+    };
+    const user = await User.findOne({ email: payload.email });
+    if (!user)
+      return res.status(404).json({ success: false, error: "User not found" });
+    user.password = password;
+    await user.save();
+    return res.json({ success: true });
+  } catch (err) {
+    return res
+      .status(401)
+      .json({ success: false, error: "Token expired or invalid" });
+  }
 };
