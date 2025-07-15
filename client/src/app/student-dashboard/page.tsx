@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { StudentDashboard } from "@/components/student-dashboard"
-import { TeamFormation } from "@/components/team-formation"
-import { BrowseProjects } from "@/components/browse-projects"
+import { useEffect, useState } from "react";
+import { StudentDashboard } from "@/components/student-dashboard/student-dashboard";
+import { TeamFormation } from "@/components/student-dashboard/team-formation";
+import { BrowseProjects } from "@/components/student-dashboard/browse-projects";
 import {
   Sidebar,
   SidebarContent,
@@ -13,13 +13,24 @@ import {
   SidebarMenuItem,
   SidebarProvider,
   SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Home, Users, Search, FileText, Settings, HelpCircle, GraduationCap } from "lucide-react"
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import {
+  Home,
+  Users,
+  Search,
+  FileText,
+  Settings,
+  HelpCircle,
+  GraduationCap,
+  Loader2,
+} from "lucide-react";
+import { useUser } from "@/context/Authcontext";
+import { useRouter } from "next/navigation";
 
-type Page = "dashboard" | "team-formation" | "browse-projects"
+type Page = "dashboard" | "team-formation" | "browse-projects";
 
 const navigation = [
   { id: "dashboard", name: "Dashboard", icon: Home },
@@ -28,9 +39,31 @@ const navigation = [
   { id: "submissions", name: "Submissions", icon: FileText },
   { id: "settings", name: "Settings", icon: Settings },
   { id: "help", name: "Help & Support", icon: HelpCircle },
-]
+];
 
-function AppSidebar({ currentPage, onPageChange }: { currentPage: Page; onPageChange: (page: Page) => void }) {
+function AppSidebar({
+  currentPage,
+  onPageChange,
+}: {
+  currentPage: Page;
+  onPageChange: (page: Page) => void;
+}) {
+  const router = useRouter();
+  const { user, loading } = useUser();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
   return (
     <Sidebar>
       <SidebarHeader className="border-b p-4">
@@ -48,14 +81,16 @@ function AppSidebar({ currentPage, onPageChange }: { currentPage: Page; onPageCh
         <div className="mb-6">
           <div className="flex items-center gap-3 rounded-lg bg-muted p-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src="/placeholder.svg?height=40&width=40" />
-              <AvatarFallback>AS</AvatarFallback>
+              <AvatarImage src="/?height=40&width=40" />
+              <AvatarFallback>{user.firstName?.[0] || "U"}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">Alex Smith</p>
+              <p className="font-medium truncate">
+                {user.firstName} {user.lastName}
+              </p>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className="text-xs">
-                  Team Lead
+                  {user.isTeamAlloted ? user.isTeamLead : "No Team"}
                 </Badge>
               </div>
             </div>
@@ -77,24 +112,40 @@ function AppSidebar({ currentPage, onPageChange }: { currentPage: Page; onPageCh
         </SidebarMenu>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }
 
 export default function SyncSpaceApp() {
-  const [currentPage, setCurrentPage] = useState<Page>("dashboard")
+  const [currentPage, setCurrentPage] = useState<Page>("dashboard");
 
   const renderPage = () => {
     switch (currentPage) {
       case "dashboard":
-        return <StudentDashboard onNavigate={(page: string) => setCurrentPage(page as Page)} />
+        return (
+          <StudentDashboard
+            onNavigate={(page: string) => setCurrentPage(page as Page)}
+          />
+        );
       case "team-formation":
-        return <TeamFormation onNavigate={(page: string) => setCurrentPage(page as Page)} />
+        return (
+          <TeamFormation
+            onNavigate={(page: string) => setCurrentPage(page as Page)}
+          />
+        );
       case "browse-projects":
-        return <BrowseProjects onNavigate={(page: string) => setCurrentPage(page as Page)} />
+        return (
+          <BrowseProjects
+            onNavigate={(page: string) => setCurrentPage(page as Page)}
+          />
+        );
       default:
-        return <StudentDashboard onNavigate={(page: string) => setCurrentPage(page as Page)} />
+        return (
+          <StudentDashboard
+            onNavigate={(page: string) => setCurrentPage(page as Page)}
+          />
+        );
     }
-  }
+  };
 
   return (
     <SidebarProvider>
@@ -115,5 +166,5 @@ export default function SyncSpaceApp() {
         </main>
       </div>
     </SidebarProvider>
-  )
+  );
 }

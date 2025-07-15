@@ -1,5 +1,5 @@
-import api from "./axios"; 
-import type { projectFormData } from "../app/admin-dashboard/project-buckets/create/page";
+import api from "./axios";
+import type { projectFormData } from "../types/projectFormData";
 
 export async function addProject(data: projectFormData) {
   const form = new FormData();
@@ -20,7 +20,7 @@ export async function addProject(data: projectFormData) {
   form.append("requireSkillAssessment", String(data.requireSkillAssessment));
   form.append("requireProposal", String(data.requireProposal));
   form.append("requireVideoPitch", String(data.requireVideoPitch));
-  form.append("professorId", data.professorId);
+  form.append("supervisorId", data.supervisorId);
   form.append("coSupervisorId", data.coSupervisorId);
   form.append("evaluationCriteria", data.evaluationCriteria);
   form.append("gradingRubric", data.gradingRubric);

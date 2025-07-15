@@ -258,39 +258,6 @@ export default function BulkCreateProjectsPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Quick Stats</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Projects Ready
-                </span>
-                <Badge variant="outline">{projects.length}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Unique Departments
-                </span>
-                <Badge variant="outline">
-                  {
-                    new Set(projects.map((p) => p.department).filter(Boolean))
-                      .size
-                  }
-                </Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Total Teams
-                </span>
-                <Badge variant="outline">
-                  {projects.reduce((sum, p) => sum + (p.maxTeams || 0), 0)}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
               <CardTitle>Tips & Best Practices</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">

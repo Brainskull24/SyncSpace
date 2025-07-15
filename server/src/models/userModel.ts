@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,10 +17,35 @@ const userSchema = new mongoose.Schema(
     adminPosition: String,
     graduationYear: String,
     profilePicture: String,
-    isTeamLead: Boolean,
-    token: { type: String }, 
+    isTeamAlloted: {
+      type: Boolean,
+      default: false,
+    },
+    isProjectAlloted: {
+      type: Boolean,
+      default: false,
+    },
+    isDetained: {
+      type: Boolean,
+      default: false,
+    },
+    isTeamLead: {
+      type: Boolean,
+      default: false,
+    },
+    token: { type: String },
+    team: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Team",
+      default: null,
+    },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      default: null,
+    },
   },
   { timestamps: true }
-)
+);
 
-export default mongoose.model("User", userSchema)
+export default mongoose.model("User", userSchema);

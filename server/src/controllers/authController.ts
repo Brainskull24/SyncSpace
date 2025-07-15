@@ -32,7 +32,7 @@ export const sendCode = async (req: Request, res: Response) => {
   const code = Math.floor(100000 + Math.random() * 900000).toString();
   verificationCodes[email] = code;
   const html = getVerificationEmailHtml(name, code);
-  
+
   await sendEmail(email, "Verify Email Address", html);
   console.log(`Verification code for ${email}: ${code}`);
   return res.json({ success: true, message: "Verification code sent" });
@@ -175,6 +175,28 @@ export const getProfile = async (req: Request, res: Response) => {
   }
 };
 
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const updates = req.body;
+    Object.assign(user, updates);
+    await user.save();
+
+    return res.json({
+      success: true,
+      user: { ...user.toObject(), password: undefined, token: undefined },
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 export const forgotPassword = async (req: Request, res: Response) => {
   const parsed = forgotPasswordSchema.safeParse(req.body);
   if (!parsed.success)
@@ -238,5 +260,61 @@ export const resetPassword = async (req: Request, res: Response) => {
     return res
       .status(401)
       .json({ success: false, error: "Token expired or invalid" });
+  }
+};
+
+export const requestDeleteAccount = async (req: Request, res: Response) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  return res.json({
+    success: true,
+    message: "Account deletion requested. Please check your email.",
+  });
+};
+
+export const getAllStudents = async (req: Request, res: Response) => {
+  try {
+    const students = await User.find({})
+      .select("-profilePicture -password -token")
+      .where("role")
+      .equals("student")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const totalStudents = students.length;
+
+    res.status(200).json({
+      success: true,
+      students,
+      totalStudents,
+    });
+  } catch (error: any) {
+    console.error("[GET ALL STUDENTS ERROR]", error.message);
+    res.status(500).json({ message: "Error retrieving students" });
+  }
+};
+
+export const getAllProfessors = async (req: Request, res: Response) => {
+  try {
+    const professors = await User.find({})
+      .select("-profilePicture -password -token")
+      .where("role")
+      .equals("professor")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const totalProfessors = professors.length;
+
+    res.status(200).json({
+      success: true,
+      professors,
+      totalProfessors,
+    });
+  } catch (error: any) {
+    console.error("[GET ALL STUDENTS ERROR]", error.message);
+    res.status(500).json({ message: "Error retrieving students" });
   }
 };

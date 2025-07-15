@@ -128,12 +128,15 @@ export default function LandingPage() {
               <div className="hidden md:flex items-center space-x-4">
                 <Button
                   variant="ghost"
-                  className="text-gray-600 hover:text-gray-900"
+                  className="text-gray-600 hover:text-gray-900 cursor-pointer"
                   onClick={() => router.push("/login")}
                 >
                   Login
                 </Button>
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                <Button
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 cursor-pointer"
+                  onClick={() => router.push("/register")}
+                >
                   Get Started
                 </Button>
               </div>
@@ -721,7 +724,7 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-            
+
             {/* Support */}
             <div>
               <h4 className="font-semibold mb-4">Support</h4>

@@ -15,79 +15,43 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import api from "@/lib/axios";
+import { gradingRubrics } from "@/types/projectFormData";
 
 interface ProfessorAssignmentSectionProps {
   formData: any;
   updateFormData: (field: string, value: any) => void;
 }
 
-const professors = [
-  {
-    id: "prof-1",
-    name: "Dr. Sarah Johnson",
-    department: "Computer Science",
-    workload: "optimal",
-    email: "prof.johnson@university.edu",
-  },
-  {
-    id: "prof-2",
-    name: "Dr. Michael Chen",
-    department: "Data Science",
-    workload: "underloaded",
-    email: "prof.chen@university.edu",
-  },
-  {
-    id: "prof-3",
-    name: "Dr. Emily Rodriguez",
-    department: "Engineering",
-    workload: "optimal",
-    email: "prof.rodriguez@university.edu",
-  },
-  {
-    id: "prof-4",
-    name: "Dr. James Wilson",
-    department: "Mathematics",
-    workload: "overloaded",
-    email: "prof.wilson@university.edu",
-  },
-  {
-    id: "prof-5",
-    name: "Dr. Lisa Patel",
-    department: "Computer Science",
-    workload: "optimal",
-    email: "prof.patel@university.edu",
-  },
-];
-
-const gradingRubrics = [
-  { value: "standard", label: "Standard Project Rubric" },
-  { value: "research", label: "Research Project Rubric" },
-  { value: "industry", label: "Industry Partnership Rubric" },
-  { value: "custom", label: "Custom Rubric" },
-];
-
-const getWorkloadBadge = (workload: string) => {
-  switch (workload) {
-    case "underloaded":
-      return <Badge className="bg-blue-100 text-blue-800">Available</Badge>;
-    case "optimal":
-      return <Badge className="bg-green-100 text-green-800">Optimal</Badge>;
-    case "overloaded":
-      return <Badge className="bg-red-100 text-red-800">Busy</Badge>;
-    default:
-      return <Badge variant="outline">{workload}</Badge>;
-  }
-};
-
 export function ProfessorAssignmentSection({
   formData,
   updateFormData,
 }: ProfessorAssignmentSectionProps) {
-  const selectedProfessor = professors.find(
-    (p) => p.email === formData.supervisorEmail
+  const [professors, setProfessors] = useState<any[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAllProfessors();
+    const intervalId = setInterval(getAllProfessors, 3000);
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const getAllProfessors = async () => {
+    try {
+      const { data } = await api.get("/auth/professors");
+      setProfessors(data.professors || []);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to fetch professors:", err);
+      setError("Failed to load professor data.");
+    }
+  };
+
+  const selectedSupervisor = professors.find(
+    (p) => p._id === formData.supervisorId
   );
 
   return (
@@ -99,49 +63,53 @@ export function ProfessorAssignmentSection({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Supervisor Selection */}
         <div className="space-y-2">
           <Label>Primary Supervisor *</Label>
           <Select
-            value={formData.supervisorEmail}
-            onValueChange={(value) => updateFormData("supervisorEmail", value)}
+            value={formData.supervisorId}
+            onValueChange={(value) => updateFormData("supervisorId", value)}
           >
             <SelectTrigger>
               <SelectValue placeholder="Select a professor" />
             </SelectTrigger>
             <SelectContent>
               {professors.map((professor) => (
-                <SelectItem key={professor.email} value={professor.email}>
+                <SelectItem key={professor._id} value={professor._id}>
                   <div className="flex items-center justify-between w-full gap-2">
                     <div className="flex items-center space-x-2">
                       <Avatar className="h-6 w-6">
                         <AvatarFallback className="text-xs">
-                          {professor.name.split(" ")[1][0]}
-                          {professor.name.split(" ")[0][0]}
+                          {professor.firstName[0]}
+                          {professor.lastName[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="font-medium">{professor.name}</p>
+                        <p className="font-medium">
+                          {professor.firstName} {professor.lastName}
+                        </p>
                         <p className="text-xs text-muted-foreground">
                           {professor.department}
                         </p>
                       </div>
                     </div>
-                    {getWorkloadBadge(professor.workload)}
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          {selectedProfessor && (
+
+          {selectedSupervisor && (
             <div className="mt-2 p-3 bg-muted rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{selectedProfessor.name}</p>
+                  <p className="font-medium">
+                    {selectedSupervisor.firstName} {selectedSupervisor.lastName}
+                  </p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedProfessor.department}
+                    {selectedSupervisor.department}
                   </p>
                 </div>
-                {getWorkloadBadge(selectedProfessor.workload)}
               </div>
             </div>
           )}
@@ -150,9 +118,9 @@ export function ProfessorAssignmentSection({
         <div className="space-y-2">
           <Label>Co-Supervisor (Optional)</Label>
           <Select
-            value={formData.coSupervisorEmail || "none"}
+            value={formData.coSupervisorId || "none"}
             onValueChange={(value) =>
-              updateFormData("coSupervisorEmail", value === "none" ? "" : value)
+              updateFormData("coSupervisorId", value === "none" ? "" : value)
             }
           >
             <SelectTrigger>
@@ -161,25 +129,26 @@ export function ProfessorAssignmentSection({
             <SelectContent>
               <SelectItem value="none">None</SelectItem>
               {professors
-                .filter((p) => p.email !== formData.supervisorEmail)
+                .filter((p) => p._id !== formData.supervisorId)
                 .map((professor) => (
-                  <SelectItem key={professor.email} value={professor.email}>
+                  <SelectItem key={professor._id} value={professor._id}>
                     <div className="flex items-center justify-between w-full gap-2">
                       <div className="flex items-center space-x-2">
                         <Avatar className="h-6 w-6">
                           <AvatarFallback className="text-xs">
-                            {professor.name.split(" ")[1][0]}
-                            {professor.name.split(" ")[0][0]}
+                            {professor.firstName[0]}
+                            {professor.lastName[0]}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium">{professor.name}</p>
+                          <p className="font-medium">
+                            {professor.firstName} {professor.lastName}
+                          </p>
                           <p className="text-xs text-muted-foreground">
                             {professor.department}
                           </p>
                         </div>
                       </div>
-                      {getWorkloadBadge(professor.workload)}
                     </div>
                   </SelectItem>
                 ))}
@@ -190,6 +159,7 @@ export function ProfessorAssignmentSection({
           </p>
         </div>
 
+        {/* Grading Rubric */}
         <div className="space-y-2">
           <Label>Grading Rubric Template</Label>
           <Select
@@ -212,6 +182,7 @@ export function ProfessorAssignmentSection({
           </p>
         </div>
 
+        {/* Evaluation Criteria */}
         <div className="space-y-2">
           <Label htmlFor="evaluationCriteria">Custom Evaluation Criteria</Label>
           <Textarea

@@ -55,8 +55,8 @@ export default function ProjectEditForm() {
           .toISOString()
           .split("T")[0];
       }
-      if (projectData.projectDeadline) {
-        projectData.projectDeadline = new Date(projectData.projectDeadline)
+      if (projectData.projectEndDate) {
+        projectData.projectEndDate = new Date(projectData.projectEndDate)
           .toISOString()
           .split("T")[0];
       }
@@ -204,27 +204,14 @@ export default function ProjectEditForm() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="requirements">Requirements</Label>
+                  <Label htmlFor="prerequisites">Prerequisites</Label>
                   <Textarea
-                    id="requirements"
-                    value={project.requirements || ""}
+                    id="prerequisites"
+                    value={project.prerequisites || ""}
                     onChange={(e) =>
-                      handleInputChange("requirements", e.target.value)
+                      handleInputChange("prerequisites", e.target.value)
                     }
-                    placeholder="What are the project requirements?"
-                    rows={3}
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="deliverables">Deliverables</Label>
-                  <Textarea
-                    id="deliverables"
-                    value={project.deliverables || ""}
-                    onChange={(e) =>
-                      handleInputChange("deliverables", e.target.value)
-                    }
-                    placeholder="What will be delivered?"
+                    placeholder="What are the project prerequisites?"
                     rows={3}
                   />
                 </div>
@@ -240,17 +227,6 @@ export default function ProjectEditForm() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="skillsRequired">Required Skills</Label>
-                  <Input
-                    id="skillsRequired"
-                    value={project.skillsRequired || ""}
-                    onChange={(e) =>
-                      handleInputChange("skillsRequired", e.target.value)
-                    }
-                    placeholder="e.g., JavaScript, React, Node.js (comma-separated)"
-                  />
-                </div>
 
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="technologies">Technologies</Label>
@@ -307,9 +283,9 @@ export default function ProjectEditForm() {
                       <SelectValue placeholder="Select difficulty" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="beginner">Beginner</SelectItem>
-                      <SelectItem value="intermediate">Intermediate</SelectItem>
-                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -327,14 +303,30 @@ export default function ProjectEditForm() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="professorId">Professor</Label>
+                  <Label htmlFor="supervisorEmail">Supervisor</Label>
                   <Input
-                    id="professorId"
-                    value={project.professorId || ""}
-                    onChange={(e) =>
-                      handleInputChange("professorId", e.target.value)
+                    id="supervisorEmail"
+                    value={
+                      project.supervisorEmail || ""
                     }
-                    placeholder="Professor name or ID"
+                    onChange={(e) =>
+                      handleInputChange("supervisorEmail", e.target.value)
+                    }
+                    placeholder="Supervisor Email or ID"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="coSupervisorEmail">Co Supervisor</Label>
+                  <Input
+                    id="coSupervisorEmail"
+                    value={
+                      project.coSupervisorEmail || ""
+                    }
+                    onChange={(e) =>
+                      handleInputChange("coSupervisorEmail", e.target.value)
+                    }
+                    placeholder="Co Supervisor Email or ID"
                   />
                 </div>
               </CardContent>
@@ -375,18 +367,6 @@ export default function ProjectEditForm() {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="location">Location</Label>
-                  <Input
-                    id="location"
-                    value={project.location || ""}
-                    onChange={(e) =>
-                      handleInputChange("location", e.target.value)
-                    }
-                    placeholder="Project location"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-2">
                   <Label htmlFor="applicationDeadline">
                     Application Deadline
                   </Label>
@@ -405,7 +385,7 @@ export default function ProjectEditForm() {
                   <Input
                     id="projectDeadline"
                     type="date"
-                    value={project.projectDeadline || ""}
+                    value={project.projectEndDate || ""}
                     onChange={(e) =>
                       handleInputChange("projectDeadline", e.target.value)
                     }

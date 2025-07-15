@@ -19,7 +19,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { projectFormData } from "@/app/admin-dashboard/project-buckets/create/page";
+import { projectFormData } from "@/types/projectFormData";
 
 interface BasicInformationSectionProps {
   formData: projectFormData;

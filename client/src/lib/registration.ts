@@ -114,7 +114,7 @@ export const step3Schema = z
     }),
     studentId: z.string().optional(),
     employeeId: z.string().optional(),
-    graduationYear: z.string().optional(),
+    graduationYear: z.string().min(4, "Graduation year must be 4 digits").max(4, "Graduation year must be 4 digits").optional(),
     adminPosition: z.string().optional(),
     verificationDocuments: z.array(z.string()).optional(),
     isTeamLead: z.boolean().default(false).optional(),

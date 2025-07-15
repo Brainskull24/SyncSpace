@@ -535,7 +535,7 @@ export default function RegisterPage() {
           <Select
             onValueChange={(value) => step2Form.setValue("countryCode", value)}
           >
-            <SelectTrigger className="w-24">
+            <SelectTrigger className="w-24" defaultValue={+91}>
               <SelectValue placeholder="+91" />
             </SelectTrigger>
             <SelectContent>

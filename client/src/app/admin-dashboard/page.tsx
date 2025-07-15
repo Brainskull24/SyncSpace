@@ -43,10 +43,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StatsCards } from "@/components/stats-cards";
-import { ProjectOverview } from "@/components/project-overview";
-import { TeamAnalytics } from "@/components/team-analytics";
-import { ProfessorManagement } from "@/components/professor-management";
-import { RecentActivity } from "@/components/recent-activity";
+import { ProjectOverview } from "@/components/admin-dashboard/project-overview";
+import { TeamAnalytics } from "@/components/admin-dashboard/team-analytics";
+import { ProfessorManagement } from "@/components/admin-dashboard/professor-management";
+import { RecentActivity } from "@/components/admin-dashboard/recent-activity";
 import { QuickActions } from "@/components/quick-actions";
 import Link from "next/link";
 import { useUser } from "@/context/Authcontext";
@@ -113,11 +113,44 @@ export default function Dashboard() {
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
+                    isActive={pathname === "/admin-dashboard/teams"}
+                  >
+                    <Link href="/admin-dashboard/teams">
+                      <Users className="h-4 w-4" />
+                      <span>Teams</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === "/admin-dashboard/students"}
+                  >
+                    <Link href="/admin-dashboard/students">
+                      <Users className="h-4 w-4" />
+                      <span>Students</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
                     isActive={pathname === "/admin-dashboard/professors"}
                   >
                     <Link href="/admin-dashboard/professors">
                       <Users className="h-4 w-4" />
-                      <span>Professors Section</span>
+                      <span>Professors</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={pathname === "/admin-dashboard/applications"}
+                  >
+                    <Link href="/admin-dashboard/applications">
+                      <FileText className="h-4 w-4" />
+                      <span>Applications</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -141,7 +174,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Avatar>
-                <AvatarImage src="/placeholder.svg?height=32&width=32" />
+                <AvatarImage src="/?height=32&width=32" />
                 <AvatarFallback>{user.firstName?.[0] || "U"}</AvatarFallback>
               </Avatar>
               <div>

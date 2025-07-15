@@ -1,50 +1,137 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Progress } from "@/components/ui/progress"
-import { Separator } from "@/components/ui/separator"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import {
   Bell,
   Calendar,
   CheckCircle,
   Clock,
   FileText,
+  Loader2,
   MessageSquare,
   Plus,
   Star,
   TrendingUp,
   Users,
-} from "lucide-react"
+} from "lucide-react";
+import { useUser } from "@/context/Authcontext";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface StudentDashboardProps {
-  onNavigate: (page: string) => void
+  onNavigate: (page: string) => void;
 }
 
 export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
+  const router = useRouter();
+  const { user, loading } = useUser();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push("/login");
+    }
+  }, [loading, user, router]);
+
+  if (loading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   const stats = [
-    { title: "Team Status", value: "Active", icon: Users, color: "text-green-600" },
-    { title: "Active Projects", value: "2", icon: FileText, color: "text-blue-600" },
-    { title: "Completed Phases", value: "3", icon: CheckCircle, color: "text-purple-600" },
-    { title: "Upcoming Deadlines", value: "5", icon: Clock, color: "text-orange-600" },
-  ]
+    {
+      title: "Team Status",
+      value: user.isTeamAlloted ? "Active" : "No Team",
+      icon: Users,
+      color: "text-green-600",
+    },
+    {
+      title: "Active Projects",
+      value: "1",
+      icon: FileText,
+      color: "text-blue-600",
+    },
+    {
+      title: "Completed Phases",
+      value: "3",
+      icon: CheckCircle,
+      color: "text-purple-600",
+    },
+    {
+      title: "Upcoming Deadlines",
+      value: "5",
+      icon: Clock,
+      color: "text-orange-600",
+    },
+  ];
 
   const teamMembers = [
-    { name: "Alex Smith", role: "Team Lead", avatar: "/placeholder.svg?height=32&width=32", status: "online" },
-    { name: "Sarah Johnson", role: "Developer", avatar: "/placeholder.svg?height=32&width=32", status: "online" },
-    { name: "Mike Chen", role: "Designer", avatar: "/placeholder.svg?height=32&width=32", status: "away" },
-    { name: "Emma Davis", role: "Developer", avatar: "/placeholder.svg?height=32&width=32", status: "offline" },
-  ]
+    {
+      name: "Alex Smith",
+      role: "Team Lead",
+      avatar: "/?height=32&width=32",
+      status: "online",
+    },
+    {
+      name: "Sarah Johnson",
+      role: "Developer",
+      avatar: "/?height=32&width=32",
+      status: "online",
+    },
+    {
+      name: "Mike Chen",
+      role: "Designer",
+      avatar: "/?height=32&width=32",
+      status: "away",
+    },
+    {
+      name: "Emma Davis",
+      role: "Developer",
+      avatar: "/?height=32&width=32",
+      status: "offline",
+    },
+  ];
 
   const phases = [
-    { name: "Research & Planning", status: "completed", description: "Initial research and project planning" },
-    { name: "Design & Prototyping", status: "completed", description: "UI/UX design and prototyping" },
-    { name: "Development", status: "current", description: "Core development and implementation" },
-    { name: "Testing & QA", status: "upcoming", description: "Testing and quality assurance" },
-    { name: "Deployment", status: "upcoming", description: "Final deployment and presentation" },
-  ]
+    {
+      name: "Research & Planning",
+      status: "completed",
+      description: "Initial research and project planning",
+    },
+    {
+      name: "Design & Prototyping",
+      status: "completed",
+      description: "UI/UX design and prototyping",
+    },
+    {
+      name: "Development",
+      status: "current",
+      description: "Core development and implementation",
+    },
+    {
+      name: "Testing & QA",
+      status: "upcoming",
+      description: "Testing and quality assurance",
+    },
+    {
+      name: "Deployment",
+      status: "upcoming",
+      description: "Final deployment and presentation",
+    },
+  ];
 
   const tasks = [
     {
@@ -68,28 +155,60 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
       status: "Completed",
       priority: "Low",
     },
-  ]
+  ];
 
   const activities = [
-    { type: "submission", message: "Phase 2 submitted successfully", time: "2 hours ago" },
-    { type: "feedback", message: "Professor feedback received on Phase 1", time: "1 day ago" },
+    {
+      type: "submission",
+      message: "Phase 2 submitted successfully",
+      time: "2 hours ago",
+    },
+    {
+      type: "feedback",
+      message: "Professor feedback received on Phase 1",
+      time: "1 day ago",
+    },
     { type: "team", message: "Sarah joined the team chat", time: "2 days ago" },
-    { type: "deadline", message: "New deadline set for Phase 3", time: "3 days ago" },
-  ]
+    {
+      type: "deadline",
+      message: "New deadline set for Phase 3",
+      time: "3 days ago",
+    },
+  ];
 
   const deadlines = [
-    { title: "Phase 3 Submission", date: "2024-01-15", type: "Phase", urgency: "urgent" },
-    { title: "Team Meeting", date: "2024-01-16", type: "Meeting", urgency: "soon" },
-    { title: "Individual Task Review", date: "2024-01-20", type: "Task", urgency: "normal" },
-  ]
+    {
+      title: "Phase 3 Submission",
+      date: "2024-01-15",
+      type: "Phase",
+      urgency: "urgent",
+    },
+    {
+      title: "Team Meeting",
+      date: "2024-01-16",
+      type: "Meeting",
+      urgency: "soon",
+    },
+    {
+      title: "Individual Task Review",
+      date: "2024-01-20",
+      type: "Task",
+      urgency: "normal",
+    },
+  ];
 
   return (
     <div className="p-6 space-y-6">
       {/* Header Section */}
       <div className="space-y-4">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back, Alex! 👋</h1>
-          <p className="text-muted-foreground">Fall 2024 • Computer Science • Team Lead</p>
+          <h1 className="text-3xl font-bold">
+            Welcome back, {user.firstName}! 👋
+          </h1>
+          <p className="text-muted-foreground">
+            {user.academicYear} • {user.department} •{" "}
+            {user.isTeamAlloted ? user.isTeamLead : "No Team"}
+          </p>
         </div>
 
         {/* Stats Cards */}
@@ -99,7 +218,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {stat.title}
+                    </p>
                     <p className="text-2xl font-bold">{stat.value}</p>
                   </div>
                   <stat.icon className={`h-8 w-8 ${stat.color}`} />
@@ -136,7 +257,7 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                   <div key={index} className="flex items-center gap-3">
                     <div className="relative">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={member.avatar || "/placeholder.svg"} />
+                        <AvatarImage src={member.avatar || "/"} />
                         <AvatarFallback>
                           {member.name
                             .split(" ")
@@ -149,19 +270,27 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                           member.status === "online"
                             ? "bg-green-500"
                             : member.status === "away"
-                              ? "bg-yellow-500"
-                              : "bg-gray-400"
+                            ? "bg-yellow-500"
+                            : "bg-gray-400"
                         }`}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{member.name}</p>
-                      <p className="text-xs text-muted-foreground">{member.role}</p>
+                      <p className="text-sm font-medium truncate">
+                        {member.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {member.role}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
-              <Button variant="outline" className="w-full bg-transparent" onClick={() => onNavigate("team-formation")}>
+              <Button
+                variant="outline"
+                className="w-full bg-transparent"
+                onClick={() => onNavigate("team-formation")}
+              >
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Team Chat
               </Button>
@@ -177,12 +306,14 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src="/placeholder.svg?height=40&width=40" />
+                  <AvatarImage src="/?height=40&width=40" />
                   <AvatarFallback>PJ</AvatarFallback>
                 </Avatar>
                 <div>
                   <p className="font-medium">Prof. Johnson</p>
-                  <p className="text-sm text-muted-foreground">Computer Science</p>
+                  <p className="text-sm text-muted-foreground">
+                    Computer Science
+                  </p>
                 </div>
               </div>
               <div className="space-y-2">
@@ -196,7 +327,11 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                 <Calendar className="h-4 w-4" />
                 <span>Next Deadline: Jan 15, 2024</span>
               </div>
-              <Button variant="outline" className="w-full bg-transparent" onClick={() => onNavigate("browse-projects")}>
+              <Button
+                variant="outline"
+                className="w-full bg-transparent"
+                onClick={() => onNavigate("browse-projects")}
+              >
                 View Project Details
               </Button>
             </CardContent>
@@ -220,8 +355,8 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                         phase.status === "completed"
                           ? "bg-green-100 text-green-600"
                           : phase.status === "current"
-                            ? "bg-blue-100 text-blue-600"
-                            : "bg-gray-100 text-gray-400"
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-400"
                       }`}
                     >
                       {phase.status === "completed" ? (
@@ -231,10 +366,20 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className={`font-medium ${phase.status === "current" ? "text-blue-600" : ""}`}>{phase.name}</p>
-                      <p className="text-sm text-muted-foreground">{phase.description}</p>
+                      <p
+                        className={`font-medium ${
+                          phase.status === "current" ? "text-blue-600" : ""
+                        }`}
+                      >
+                        {phase.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {phase.description}
+                      </p>
                     </div>
-                    {phase.status === "current" && <Badge variant="default">Current</Badge>}
+                    {phase.status === "current" && (
+                      <Badge variant="default">Current</Badge>
+                    )}
                   </div>
                 ))}
               </div>
@@ -259,29 +404,33 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <p className="font-medium">{task.title}</p>
-                        <p className="text-sm text-muted-foreground">Assigned by {task.assignedBy}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Assigned by {task.assignedBy}
+                        </p>
                       </div>
                       <Badge
                         variant={
                           task.priority === "High"
                             ? "destructive"
                             : task.priority === "Medium"
-                              ? "default"
-                              : "secondary"
+                            ? "default"
+                            : "secondary"
                         }
                       >
                         {task.priority}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-muted-foreground">Due: {task.dueDate}</span>
+                      <span className="text-muted-foreground">
+                        Due: {task.dueDate}
+                      </span>
                       <Badge
                         variant={
                           task.status === "Completed"
                             ? "default"
                             : task.status === "In Progress"
-                              ? "secondary"
-                              : "outline"
+                            ? "secondary"
+                            : "outline"
                         }
                       >
                         {task.status}
@@ -314,10 +463,10 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                         activity.type === "submission"
                           ? "bg-green-100 text-green-600"
                           : activity.type === "feedback"
-                            ? "bg-blue-100 text-blue-600"
-                            : activity.type === "team"
-                              ? "bg-purple-100 text-purple-600"
-                              : "bg-orange-100 text-orange-600"
+                          ? "bg-blue-100 text-blue-600"
+                          : activity.type === "team"
+                          ? "bg-purple-100 text-purple-600"
+                          : "bg-orange-100 text-orange-600"
                       }`}
                     >
                       {activity.type === "submission" ? (
@@ -332,7 +481,9 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm">{activity.message}</p>
-                      <p className="text-xs text-muted-foreground">{activity.time}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {activity.time}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -357,8 +508,8 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
                         deadline.urgency === "urgent"
                           ? "bg-red-500"
                           : deadline.urgency === "soon"
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
+                          ? "bg-yellow-500"
+                          : "bg-green-500"
                       }`}
                     />
                     <div className="flex-1 min-w-0">
@@ -408,5 +559,5 @@ export function StudentDashboard({ onNavigate }: StudentDashboardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

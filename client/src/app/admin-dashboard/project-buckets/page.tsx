@@ -335,7 +335,7 @@ export default function ProjectBucketsPage() {
                   <TableRow>
                     <TableHead>Project Title</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead>Professor</TableHead>
+                    <TableHead>Supervisor Email</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Difficulty</TableHead>
                     <TableHead>Teams</TableHead>

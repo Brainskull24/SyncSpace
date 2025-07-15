@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Project from "../models/projectModel";
+import userModel from "../models/userModel";
 
 export const addProject = async (req: Request, res: Response) => {
   try {
@@ -22,8 +23,8 @@ export const addProject = async (req: Request, res: Response) => {
       requireSkillAssessment,
       requireProposal,
       requireVideoPitch,
-      supervisorEmail,
-      coSupervisorEmail,
+      supervisorId,
+      coSupervisorId,
       evaluationCriteria,
       gradingRubric,
       externalLinks,
@@ -35,13 +36,37 @@ export const addProject = async (req: Request, res: Response) => {
       requiresNDA,
     } = req.body;
 
+    const supervisorDetails = await userModel.findById(supervisorId);
+    if (!supervisorDetails) {
+      return res.status(404).json({
+        success: false,
+        message: "Supervisor not found",
+      });
+    }
+
+    let coSupervisorDetails = null;
+    if (coSupervisorId) {
+      coSupervisorDetails = await userModel.findById(coSupervisorId);
+      if (!coSupervisorDetails) {
+        return res.status(404).json({
+          success: false,
+          message: "Co-Supervisor not found",
+        });
+      }
+    }
+
+    // ✅ Create project with both IDs + their emails
     const project = await Project.create({
       title,
       description,
       category,
+      objectives,
       difficulty,
       duration,
-      technologies: JSON.parse(technologies),
+      technologies:
+        typeof technologies === "string"
+          ? JSON.parse(technologies)
+          : technologies,
       minTeamSize,
       maxTeamSize,
       prerequisites,
@@ -53,11 +78,14 @@ export const addProject = async (req: Request, res: Response) => {
       requireSkillAssessment,
       requireProposal,
       requireVideoPitch,
-      supervisorEmail,
-      coSupervisorEmail,
+      supervisor: supervisorDetails,
+      coSupervisor: coSupervisorDetails,
       evaluationCriteria,
       gradingRubric,
-      externalLinks: JSON.parse(externalLinks),
+      externalLinks:
+        typeof externalLinks === "string"
+          ? JSON.parse(externalLinks)
+          : externalLinks,
       projectFiles:
         (req.files as Express.Multer.File[])?.map(
           (file: Express.Multer.File) => file.path
@@ -70,9 +98,10 @@ export const addProject = async (req: Request, res: Response) => {
       requiresNDA,
     });
 
-    res.status(201).json({ success: true, project });
+    return res.status(201).json({ success: true, project });
   } catch (err) {
-    res.status(500).json({
+    console.error("Create Project Error:", err);
+    return res.status(500).json({
       success: false,
       message: "Failed to create project",
       error: err,
@@ -85,7 +114,9 @@ export const updateProject = async (req: Request, res: Response) => {
     const projectId = req.params.id;
     const updateData = req.body;
     if (!projectId) {
-      return res.status(400).json({ success: false, message: "Project ID is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Project ID is required" });
     }
 
     const updatedProject = await Project.findByIdAndUpdate(
@@ -95,7 +126,9 @@ export const updateProject = async (req: Request, res: Response) => {
     );
 
     if (!updatedProject) {
-      return res.status(404).json({ success: false, message: "Project not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
     }
 
     res.status(200).json({ success: true, project: updatedProject });
@@ -103,23 +136,27 @@ export const updateProject = async (req: Request, res: Response) => {
     console.error("[UPDATE PROJECT ERROR]", error.message);
     res.status(500).json({ success: false, message: "Error updating project" });
   }
-}
+};
 
 export const deleteProject = async (req: Request, res: Response) => {
   try {
     const projectId = req.params.id;
-    const deletedProject = await Project.findByIdAndDelete({_id: projectId});
+    const deletedProject = await Project.findByIdAndDelete({ _id: projectId });
 
     if (!deletedProject) {
-      return res.status(404).json({ success: false, message: "Project not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
     }
 
-    res.status(200).json({ success: true, message: "Project deleted successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Project deleted successfully" });
   } catch (error: any) {
     console.error("[DELETE PROJECT ERROR]", error.message);
     res.status(500).json({ success: false, message: "Error deleting project" });
   }
-}
+};
 
 export const getAllProjects = async (req: Request, res: Response) => {
   try {
@@ -159,28 +196,86 @@ export const getSingleProject = async (req: Request, res: Response) => {
 };
 
 export const addMultipleProjects = async (req: Request, res: Response) => {
-  const { projects, versionInfo, commonBucketData } = req.body;
+  try {
+    const { projects, versionInfo, commonBucketData } = req.body;
 
-  if (!projects?.length || !versionInfo?.name || !versionInfo?.semester) {
-    return res.status(400).json({ message: "Invalid input" });
+    if (!projects?.length || !versionInfo?.name || !versionInfo?.semester) {
+      return res.status(400).json({ message: "Invalid input" });
+    }
+
+    const enrichedProjects = [];
+
+    for (const p of projects) {
+      const supervisor = await userModel
+        .findOne({ email: p.supervisorEmail })
+        .lean();
+      if (!supervisor) {
+        return res.status(404).json({
+          success: false,
+          message: `Supervisor not found for email: ${p.supervisorEmail}`,
+        });
+      }
+
+      let coSupervisor = null;
+      if (p.coSupervisorEmail) {
+        coSupervisor = await userModel
+          .findOne({ email: p.coSupervisorEmail })
+          .lean();
+        if (!coSupervisor) {
+          return res.status(404).json({
+            success: false,
+            message: `Co-Supervisor not found for email: ${p.coSupervisorEmail}`,
+          });
+        }
+      }
+
+      enrichedProjects.push({
+        ...p,
+        supervisor,
+        coSupervisor,
+        version: versionInfo.name,
+        versionsemester: versionInfo.semester,
+        versiondepartment: versionInfo.department,
+        versiontags: versionInfo.tags,
+        ...commonBucketData,
+      });
+    }
+
+    const savedProjects = await Project.insertMany(enrichedProjects);
+    return res
+      .status(201)
+      .json({ message: "Projects created", data: savedProjects });
+  } catch (err) {
+    console.error("Bulk Project Upload Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to upload projects",
+      error: err,
+    });
   }
-
-  // Create projects in bulk
-  const savedProjects = await Project.insertMany(
-    projects.map((p: any) => ({
-      ...p,
-      version: versionInfo.name,
-      versionsemester: versionInfo.semester,
-      versiondepartment: versionInfo.department,
-      versiontags: versionInfo.tags,
-      ...commonBucketData,
-    }))
-  );
-
-  res.status(201).json({ message: "Projects created", data: savedProjects });
 };
 
+// export const addMultipleProjects = async (req: Request, res: Response) => {
+//   const { projects, versionInfo, commonBucketData } = req.body;
 
+//   if (!projects?.length || !versionInfo?.name || !versionInfo?.semester) {
+//     return res.status(400).json({ message: "Invalid input" });
+//   }
+
+//   // Create projects in bulk
+//   const savedProjects = await Project.insertMany(
+//     projects.map((p: any) => ({
+//       ...p,
+//       version: versionInfo.name,
+//       versionsemester: versionInfo.semester,
+//       versiondepartment: versionInfo.department,
+//       versiontags: versionInfo.tags,
+//       ...commonBucketData,
+//     }))
+//   );
+
+//   res.status(201).json({ message: "Projects created", data: savedProjects });
+// };
 
 // export const getProjectsByVersion = async (req: Request, res: Response) => {
 //   try {
@@ -424,5 +519,3 @@ export const addMultipleProjects = async (req: Request, res: Response) => {
 //     res.status(500).json({ success: false, message: "Error retrieving projects" });
 //   }
 // };
-
-

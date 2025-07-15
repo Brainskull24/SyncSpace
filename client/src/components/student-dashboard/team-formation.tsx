@@ -41,7 +41,7 @@ export function TeamFormation({ onNavigate }: TeamFormationProps) {
       year: "Junior",
       major: "Computer Science",
       skills: ["React", "Node.js", "Python", "UI/UX"],
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/?height=40&width=40",
       availability: "Available",
     },
     {
@@ -51,7 +51,7 @@ export function TeamFormation({ onNavigate }: TeamFormationProps) {
       year: "Senior",
       major: "Software Engineering",
       skills: ["Java", "Spring", "MongoDB", "DevOps"],
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/?height=40&width=40",
       availability: "Busy",
     },
     {
@@ -61,7 +61,7 @@ export function TeamFormation({ onNavigate }: TeamFormationProps) {
       year: "Sophomore",
       major: "Computer Science",
       skills: ["JavaScript", "React", "CSS", "Design"],
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/?height=40&width=40",
       availability: "Available",
     },
   ]
@@ -195,7 +195,7 @@ export function TeamFormation({ onNavigate }: TeamFormationProps) {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-16 w-16">
-                  <AvatarImage src="/placeholder.svg?height=64&width=64" />
+                  <AvatarImage src="/?height=64&width=64" />
                   <AvatarFallback>AS</AvatarFallback>
                 </Avatar>
                 <div>
@@ -323,7 +323,7 @@ export function TeamFormation({ onNavigate }: TeamFormationProps) {
                       <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex items-center gap-4">
                           <Avatar>
-                            <AvatarImage src={student.avatar || "/placeholder.svg"} />
+                            <AvatarImage src={student.avatar || "/"} />
                             <AvatarFallback>
                               {student.name
                                 .split(" ")
@@ -442,7 +442,7 @@ export function TeamFormation({ onNavigate }: TeamFormationProps) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 p-2 border rounded">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src="/placeholder.svg?height=32&width=32" />
+                      <AvatarImage src="/?height=32&width=32" />
                       <AvatarFallback>AS</AvatarFallback>
                     </Avatar>
                     <div>
