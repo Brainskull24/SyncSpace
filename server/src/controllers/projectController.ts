@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Project from "../models/projectModel";
 import userModel from "../models/userModel";
+import teamModel from "../models/teamModel";
 
 export const addProject = async (req: Request, res: Response) => {
   try {
@@ -519,3 +520,53 @@ export const addMultipleProjects = async (req: Request, res: Response) => {
 //     res.status(500).json({ success: false, message: "Error retrieving projects" });
 //   }
 // };
+
+export const applyProject = async (req: Request, res: Response) => {
+  try {
+    const projectId = req.params.projectId;
+    const { teamId } = req.body;
+
+    if (!projectId) {
+      return res.status(400).json({
+        success: false,
+        message: "Project ID is required",
+      });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Project not found" });
+    }
+
+    if (project.applications.includes(teamId)) {
+      return res.status(400).json({
+        success: false,
+        message: "You have already applied for this project",
+      });
+    }
+
+    project.applications.push(teamId);
+
+    const team = await teamModel.findById(teamId);
+
+    team?.applications.push({
+      projectId: projectId,
+    });
+
+    console.log(team);
+
+    await team?.save();
+    await project.save();
+
+    res
+      .status(200)
+      .json({ success: true, message: "Application submitted successfully" });
+  } catch (error) {
+    console.error("Apply Project Error:", error);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to apply for project", error });
+  }
+};

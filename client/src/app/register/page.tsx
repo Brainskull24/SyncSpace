@@ -194,7 +194,10 @@ export default function RegisterPage() {
       // Send verification code
       setIsLoading(true);
       try {
-        const result = await sendVerificationCode(newRegistrationData.email!, newRegistrationData.firstName!);
+        const result = await sendVerificationCode(
+          newRegistrationData.email!,
+          newRegistrationData.firstName!
+        );
         if (result.success) {
           setVerificationSent(true);
           toast("Verification Code Sent", {
@@ -278,7 +281,10 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const result = await sendVerificationCode(registrationData.email!, registrationData.firstName!);
+      const result = await sendVerificationCode(
+        registrationData.email!,
+        registrationData.firstName!
+      );
       if (result.success) {
         toast("Code Resent", {
           description: "A new verification code has been sent to your email.",
@@ -428,7 +434,10 @@ export default function RegisterPage() {
           />
           <Label htmlFor="termsAccepted" className="text-sm">
             I agree to the{" "}
-            <Link href="/terms-of-service" className="text-blue-600 hover:text-blue-700">
+            <Link
+              href="/terms-of-service"
+              className="text-blue-600 hover:text-blue-700"
+            >
               Terms of Service
             </Link>
           </Label>
@@ -450,7 +459,10 @@ export default function RegisterPage() {
           />
           <Label htmlFor="privacyAccepted" className="text-sm">
             I agree to the{" "}
-            <Link href="/privacy-policy" className="text-blue-600 hover:text-blue-700">
+            <Link
+              href="/privacy-policy"
+              className="text-blue-600 hover:text-blue-700"
+            >
               Privacy Policy
             </Link>
           </Label>

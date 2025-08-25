@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 const teamSchema = new mongoose.Schema(
   {
@@ -7,23 +7,51 @@ const teamSchema = new mongoose.Schema(
       required: true,
       unique: true, // optional: ensure unique team names
     },
-    project: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Project", // Reference to assigned project (optional at start)
-    },
-    department: {
+    description: {
       type: String,
       required: true,
+    },
+    inviteLink: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    logo: {
+      type: String,
+      default: null, // URL or path to the logo image
+    },
+    skills: {
+      type: [String],
+      default: [],
+    },
+    project: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Project",
+      default: null,
     },
     formedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User", // The team lead / creator
       required: true,
     },
+    applications: {
+      type: [{
+        projectId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Project",
+          required: true,
+        },
+        appliedAt: {
+          type: Date,
+          default: Date.now,
+        }
+      }],
+      default: [],
+    },
     members: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User", // Array of user IDs
+        ref: "User",
       },
     ],
     status: {
@@ -35,16 +63,9 @@ const teamSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
-    feedback: {
-      type: String,
-    },
-    isLocked: {
-      type: Boolean,
-      default: false, // If true, no more edits (e.g., after project assignment)
-    },
     maxSize: {
       type: Number,
-      default: 5,
+      default: 4,
     },
     minSize: {
       type: Number,
@@ -52,6 +73,6 @@ const teamSchema = new mongoose.Schema(
     },
   },
   { timestamps: true }
-)
+);
 
-export default mongoose.model("Team", teamSchema)
+export default mongoose.model("Team", teamSchema);

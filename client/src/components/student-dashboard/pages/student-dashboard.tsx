@@ -28,9 +28,10 @@ import {
 import { useUser } from "@/context/Authcontext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { Page } from "@/types/student-pages";
 
 interface StudentDashboardProps {
-  onNavigate: (page: string) => void;
+  onNavigate: (page: Page) => void;
 }
 
 export function StudentDashboard({ onNavigate }: StudentDashboardProps) {

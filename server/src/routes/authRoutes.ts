@@ -17,8 +17,8 @@ const resetPassword = require("../controllers/authController").resetPassword;
 const requestDeleteAccount =
   require("../controllers/authController").requestDeleteAccount;
 const getAllStudents = require("../controllers/authController").getAllStudents;
-const getAllProfessors = require("../controllers/authController").getAllProfessors;
-
+const getAllProfessors =
+  require("../controllers/authController").getAllProfessors;
 
 router.post("/check-email", checkEmail);
 router.post("/send-code", sendCode);
@@ -34,6 +34,5 @@ router.post("/reset-password", resetPassword);
 router.post("/request-delete-account", verifyToken, requestDeleteAccount);
 router.get("/students", getAllStudents);
 router.get("/professors", getAllProfessors);
-
 
 export default router;

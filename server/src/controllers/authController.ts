@@ -2,24 +2,14 @@ import { Request, Response } from "express";
 import User from "../models/userModel";
 import JWT from "jsonwebtoken";
 import { sendEmail } from "../middlewares/email";
-import { z } from "zod";
+import {
+  forgotPasswordSchema,
+  verifyResetCodeSchema,
+  resetPasswordSchema,
+} from "../utils/schema";
 import { getVerificationEmailHtml } from "../utils/emailTemplates";
 
 const verificationCodes: Record<string, string> = {};
-
-const forgotPasswordSchema = z.object({
-  email: z.string().email(),
-});
-
-const verifyResetCodeSchema = z.object({
-  email: z.string().email(),
-  code: z.string().length(6),
-});
-
-const resetPasswordSchema = z.object({
-  token: z.string(),
-  password: z.string().min(6),
-});
 
 export const checkEmail = async (req: Request, res: Response) => {
   const { email } = req.body;
@@ -101,6 +91,7 @@ export const login = async (req: Request, res: Response) => {
   const { email, password, rememberMe } = req.body;
 
   const user = await User.findOne({ email });
+
   if (!user) {
     return res
       .status(400)
@@ -141,13 +132,7 @@ export const login = async (req: Request, res: Response) => {
 
   return res.json({
     success: true,
-    user: {
-      id: user._id,
-      email: user.email,
-      name: `${user.firstName} ${user.lastName}`,
-      role: user.role,
-      university: user.universityId,
-    },
+    user,
   });
 };
 

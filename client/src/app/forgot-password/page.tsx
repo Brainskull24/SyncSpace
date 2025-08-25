@@ -1,13 +1,19 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { toast } from "@/components/ui/sonner"
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/sonner";
 import {
   GraduationCap,
   Eye,
@@ -19,9 +25,9 @@ import {
   ArrowLeft,
   CheckCircle,
   Shield,
-} from "lucide-react"
-import Link from "next/link"
-import { motion, AnimatePresence } from "framer-motion"
+} from "lucide-react";
+import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   forgotPasswordSchema,
   verifyResetCodeSchema,
@@ -33,141 +39,144 @@ import {
   verifyPasswordResetCode,
   resetPassword,
   checkPasswordStrength,
-} from "@/lib/auth"
-import { useRouter } from "next/navigation"
+} from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
-type Step = "email" | "verification" | "reset" | "success"
+type Step = "email" | "verification" | "reset" | "success";
 
 export default function ForgotPasswordPage() {
-  const [currentStep, setCurrentStep] = useState<Step>("email")
-  const [isLoading, setIsLoading] = useState(false)
-  const [email, setEmail] = useState("")
-  const [resetToken, setResetToken] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [currentStep, setCurrentStep] = useState<Step>("email");
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState({
     score: 0,
     feedback: "",
     color: "",
-  })
-  const [resendCooldown, setResendCooldown] = useState(0)
+  });
+  const [resendCooldown, setResendCooldown] = useState(0);
 
-  const router = useRouter()
+  const router = useRouter();
 
   // Email form
   const emailForm = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
     mode: "onChange",
-  })
+  });
 
   // Verification form
   const verificationForm = useForm<VerifyResetCodeFormData>({
     resolver: zodResolver(verifyResetCodeSchema),
     mode: "onChange",
-  })
+  });
 
   // Reset password form
   const resetForm = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     mode: "onChange",
-  })
+  });
 
-  const watchedPassword = resetForm.watch("password", "")
+  const watchedPassword = resetForm.watch("password", "");
 
   useEffect(() => {
     if (watchedPassword) {
-      setPasswordStrength(checkPasswordStrength(watchedPassword))
+      setPasswordStrength(checkPasswordStrength(watchedPassword));
     }
-  }, [watchedPassword])
+  }, [watchedPassword]);
 
   // Resend cooldown timer
   useEffect(() => {
     if (resendCooldown > 0) {
-      const timer = setTimeout(() => setResendCooldown(resendCooldown - 1), 1000)
-      return () => clearTimeout(timer)
+      const timer = setTimeout(
+        () => setResendCooldown(resendCooldown - 1),
+        1000
+      );
+      return () => clearTimeout(timer);
     }
-  }, [resendCooldown])
+  }, [resendCooldown]);
 
   const handleEmailSubmit = async (data: ForgotPasswordFormData) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await sendPasswordResetEmail(data.email)
+      const result = await sendPasswordResetEmail(data.email);
       if (result.success) {
-        setEmail(data.email)
-        setCurrentStep("verification")
-        setResendCooldown(60)
-        toast.success("Reset code sent to your email!")
+        setEmail(data.email);
+        setCurrentStep("verification");
+        setResendCooldown(60);
+        toast.success("Reset code sent to your email!");
       } else {
-        toast.error(result.error || "Failed to send reset email")
+        toast.error(result.error || "Failed to send reset email");
       }
     } catch (error) {
-      toast.error("Unable to connect to the server. Please try again.")
+      toast.error("Unable to connect to the server. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleVerificationSubmit = async (data: VerifyResetCodeFormData) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await verifyPasswordResetCode(email, data.code)
+      const result = await verifyPasswordResetCode(email, data.code);
       if (result.success && result.token) {
-        setResetToken(result.token)
-        setCurrentStep("reset")
-        toast.success("Code verified successfully!")
+        setResetToken(result.token);
+        setCurrentStep("reset");
+        toast.success("Code verified successfully!");
       } else {
         verificationForm.setError("code", {
           type: "manual",
           message: result.error || "Invalid verification code",
-        })
-        toast.error(result.error || "Invalid verification code")
+        });
+        toast.error(result.error || "Invalid verification code");
       }
     } catch (error) {
-      toast.error("Unable to verify code. Please try again.")
+      toast.error("Unable to verify code. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleResetSubmit = async (data: ResetPasswordFormData) => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await resetPassword(resetToken, data.password)
+      const result = await resetPassword(resetToken, data.password);
       if (result.success) {
-        setCurrentStep("success")
-        toast.success("Password reset successfully!")
+        setCurrentStep("success");
+        toast.success("Password reset successfully!");
       } else {
         resetForm.setError("root", {
           type: "manual",
           message: result.error || "Failed to reset password",
-        })
-        toast.error(result.error || "Failed to reset password")
+        });
+        toast.error(result.error || "Failed to reset password");
       }
     } catch (error) {
-      toast.error("Unable to reset password. Please try again.")
+      toast.error("Unable to reset password. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleResendCode = async () => {
-    if (resendCooldown > 0) return
+    if (resendCooldown > 0) return;
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const result = await sendPasswordResetEmail(email)
+      const result = await sendPasswordResetEmail(email);
       if (result.success) {
-        setResendCooldown(60)
-        toast.success("New reset code sent!")
+        setResendCooldown(60);
+        toast.success("New reset code sent!");
       } else {
-        toast.error("Failed to resend code")
+        toast.error("Failed to resend code");
       }
     } catch (error) {
-      toast.error("Unable to resend code")
+      toast.error("Unable to resend code");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -181,15 +190,23 @@ export default function ForgotPasswordPage() {
             className="space-y-6"
           >
             <div className="text-center">
-              <CardTitle className="text-2xl font-bold text-gray-900">Forgot Password?</CardTitle>
+              <CardTitle className="text-2xl font-bold text-gray-900">
+                Forgot Password?
+              </CardTitle>
               <CardDescription className="text-gray-600 mt-2">
                 Enter your university email and we'll send you a reset code
               </CardDescription>
             </div>
 
-            <form onSubmit={emailForm.handleSubmit(handleEmailSubmit)} className="space-y-4">
+            <form
+              onSubmit={emailForm.handleSubmit(handleEmailSubmit)}
+              className="space-y-4"
+            >
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-700"
+                >
                   University Email
                 </Label>
                 <div className="relative">
@@ -199,7 +216,9 @@ export default function ForgotPasswordPage() {
                     type="email"
                     placeholder="your.email@university.edu"
                     className={`pl-10 ${
-                      emailForm.formState.errors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500" : ""
+                      emailForm.formState.errors.email
+                        ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                        : ""
                     }`}
                     {...emailForm.register("email")}
                   />
@@ -232,7 +251,7 @@ export default function ForgotPasswordPage() {
               </Button>
             </form>
           </motion.div>
-        )
+        );
 
       case "verification":
         return (
@@ -244,15 +263,23 @@ export default function ForgotPasswordPage() {
             className="space-y-6"
           >
             <div className="text-center">
-              <CardTitle className="text-2xl font-bold text-gray-900">Check Your Email</CardTitle>
+              <CardTitle className="text-2xl font-bold text-gray-900">
+                Check Your Email
+              </CardTitle>
               <CardDescription className="text-gray-600 mt-2">
                 We sent a 6-digit code to <strong>{email}</strong>
               </CardDescription>
             </div>
 
-            <form onSubmit={verificationForm.handleSubmit(handleVerificationSubmit)} className="space-y-4">
+            <form
+              onSubmit={verificationForm.handleSubmit(handleVerificationSubmit)}
+              className="space-y-4"
+            >
               <div className="space-y-2">
-                <Label htmlFor="code" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="code"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Verification Code
                 </Label>
                 <div className="relative">
@@ -277,7 +304,9 @@ export default function ForgotPasswordPage() {
                     animate={{ opacity: 1, y: 0 }}
                   >
                     <AlertCircle className="w-4 h-4" />
-                    <span>{verificationForm.formState.errors.code.message}</span>
+                    <span>
+                      {verificationForm.formState.errors.code.message}
+                    </span>
                   </motion.div>
                 )}
               </div>
@@ -298,19 +327,23 @@ export default function ForgotPasswordPage() {
               </Button>
 
               <div className="text-center">
-                <span className="text-sm text-gray-600">Didn't receive the code? </span>
+                <span className="text-sm text-gray-600">
+                  Didn't receive the code?{" "}
+                </span>
                 <button
                   type="button"
                   onClick={handleResendCode}
                   disabled={resendCooldown > 0 || isLoading}
                   className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors disabled:text-gray-400"
                 >
-                  {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend Code"}
+                  {resendCooldown > 0
+                    ? `Resend in ${resendCooldown}s`
+                    : "Resend Code"}
                 </button>
               </div>
             </form>
           </motion.div>
-        )
+        );
 
       case "reset":
         return (
@@ -322,15 +355,23 @@ export default function ForgotPasswordPage() {
             className="space-y-6"
           >
             <div className="text-center">
-              <CardTitle className="text-2xl font-bold text-gray-900">Set New Password</CardTitle>
+              <CardTitle className="text-2xl font-bold text-gray-900">
+                Set New Password
+              </CardTitle>
               <CardDescription className="text-gray-600 mt-2">
                 Choose a strong password for your account
               </CardDescription>
             </div>
 
-            <form onSubmit={resetForm.handleSubmit(handleResetSubmit)} className="space-y-4">
+            <form
+              onSubmit={resetForm.handleSubmit(handleResetSubmit)}
+              className="space-y-4"
+            >
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-medium text-gray-700"
+                >
                   New Password
                 </Label>
                 <div className="relative">
@@ -351,12 +392,20 @@ export default function ForgotPasswordPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
 
                 {watchedPassword && (
-                  <motion.div className="space-y-1" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                  <motion.div
+                    className="space-y-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                  >
                     <div className="flex items-center space-x-2">
                       <div className="flex-1 bg-gray-200 rounded-full h-2">
                         <div
@@ -366,7 +415,9 @@ export default function ForgotPasswordPage() {
                           }}
                         />
                       </div>
-                      <span className="text-xs text-gray-600">{passwordStrength.feedback}</span>
+                      <span className="text-xs text-gray-600">
+                        {passwordStrength.feedback}
+                      </span>
                     </div>
                   </motion.div>
                 )}
@@ -384,7 +435,10 @@ export default function ForgotPasswordPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Confirm New Password
                 </Label>
                 <div className="relative">
@@ -405,7 +459,11 @@ export default function ForgotPasswordPage() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
                 {resetForm.formState.errors.confirmPassword && (
@@ -415,7 +473,9 @@ export default function ForgotPasswordPage() {
                     animate={{ opacity: 1, y: 0 }}
                   >
                     <AlertCircle className="w-4 h-4" />
-                    <span>{resetForm.formState.errors.confirmPassword.message}</span>
+                    <span>
+                      {resetForm.formState.errors.confirmPassword.message}
+                    </span>
                   </motion.div>
                 )}
               </div>
@@ -447,7 +507,7 @@ export default function ForgotPasswordPage() {
               </Button>
             </form>
           </motion.div>
-        )
+        );
 
       case "success":
         return (
@@ -467,9 +527,12 @@ export default function ForgotPasswordPage() {
             </motion.div>
 
             <div>
-              <CardTitle className="text-2xl font-bold text-gray-900">Password Reset Successfully!</CardTitle>
+              <CardTitle className="text-2xl font-bold text-gray-900">
+                Password Reset Successfully!
+              </CardTitle>
               <CardDescription className="text-gray-600 mt-2">
-                Your password has been updated. You can now sign in with your new password.
+                Your password has been updated. You can now sign in with your
+                new password.
               </CardDescription>
             </div>
 
@@ -480,9 +543,9 @@ export default function ForgotPasswordPage() {
               Back to Sign In
             </Button>
           </motion.div>
-        )
+        );
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -510,7 +573,9 @@ export default function ForgotPasswordPage() {
               <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
                 <GraduationCap className="w-6 h-6 text-white" />
               </div>
-              <span className="text-2xl font-bold text-gray-900">SyncSpace</span>
+              <span className="text-2xl font-bold text-gray-900">
+                SyncSpace
+              </span>
             </motion.div>
 
             {/* Progress indicator */}
@@ -522,12 +587,15 @@ export default function ForgotPasswordPage() {
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium ${
                         currentStep === step
                           ? "bg-blue-600 text-white"
-                          : ["email", "verification", "reset"].indexOf(currentStep) > index
-                            ? "bg-green-600 text-white"
-                            : "bg-gray-200 text-gray-600"
+                          : ["email", "verification", "reset"].indexOf(
+                              currentStep
+                            ) > index
+                          ? "bg-green-600 text-white"
+                          : "bg-gray-200 text-gray-600"
                       }`}
                     >
-                      {["email", "verification", "reset"].indexOf(currentStep) > index ? (
+                      {["email", "verification", "reset"].indexOf(currentStep) >
+                      index ? (
                         <CheckCircle className="w-4 h-4" />
                       ) : (
                         index + 1
@@ -536,7 +604,9 @@ export default function ForgotPasswordPage() {
                     {index < 2 && (
                       <div
                         className={`w-8 h-0.5 ${
-                          ["email", "verification", "reset"].indexOf(currentStep) > index
+                          ["email", "verification", "reset"].indexOf(
+                            currentStep
+                          ) > index
                             ? "bg-green-600"
                             : "bg-gray-200"
                         }`}
@@ -554,5 +624,5 @@ export default function ForgotPasswordPage() {
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }

@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
+import teamModel from "./teamModel";
 
 const projectSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
     objectives: String,
-    category: { type: String, required: true }, // e.g. "ai", "web", "iot"
+    category: { type: String, required: true },
     difficulty: {
       type: String,
       enum: ["Beginner", "Intermediate", "Advanced"],
@@ -77,6 +78,7 @@ const projectSchema = new mongoose.Schema(
     versionsemester: String,
     versiondepartment: String,
     versiontags: [String],
+    applications: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }]
   },
   { timestamps: true }
 );

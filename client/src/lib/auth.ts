@@ -1,6 +1,5 @@
 import { z } from "zod";
 import api from "./axios";
-import { NextApiRequest, NextApiResponse } from "next";
 
 export const loginSchema = z.object({
   email: z
@@ -23,7 +22,6 @@ export const loginSchema = z.object({
     .min(1, "Password is required")
     .min(8, "Password must be at least 8 characters"),
   rememberMe: z.boolean().optional(),
-  universityCode: z.string().optional(),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -167,59 +165,5 @@ export async function resetPassword(token: string, password: string) {
     return result;
   } catch (error) {
     return { success: false, error: "Network error occurred" };
-  }
-}
-
-interface AuthResponse {
-  success: boolean;
-  user?: {
-    id: string;
-    email: string;
-    name: string;
-    role: string;
-    university: string;
-  };
-  token?: string;
-  error?: string;
-}
-
-export const authenticateUser = async (
-  data: LoginFormData
-): Promise<AuthResponse> => {
-  try {
-    const response = await api.post<AuthResponse>("/auth/login", data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-      withCredentials: true,
-    });
-
-    return response.data;
-  } catch (error: any) {
-    return {
-      success: false,
-      error:
-        error?.response?.data?.error ||
-        error?.response?.data?.message ||
-        "Something went wrong. Please try again.",
-    };
-  }
-};
-
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  try {
-    const response = await api.get(`/auth/profile`, {
-      withCredentials: true,
-      headers: {
-        Cookie: req.headers.cookie || "",
-      },
-    });
-
-    res.status(200).json(response.data);
-  } catch (error: any) {
-    res.status(401).json({ success: false, message: "Not authenticated" });
   }
 }

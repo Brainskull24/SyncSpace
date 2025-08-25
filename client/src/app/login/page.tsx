@@ -32,11 +32,11 @@ import { motion } from "framer-motion";
 import {
   loginSchema,
   type LoginFormData,
-  authenticateUser,
   checkPasswordStrength,
 } from "@/lib/auth";
 import { useUser } from "@/context/Authcontext";
 import { useRouter } from "next/navigation";
+import api from "@/lib/axios";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -88,13 +88,13 @@ export default function LoginPage() {
     clearErrors();
 
     try {
-      const result = await authenticateUser(data);
+      const result = await api.post("/auth/login", data);
 
-      if (result.success && result.user) {
-        setUser(result.user);
-        toast.success(`Welcome back, ${result.user.name}!`);
+      if (result.data.success && result.data.user) {
+        setUser(result.data.user);
+        toast.success(`Welcome back, ${result.data.user.firstName}!`);
         setTimeout(() => {
-          switch (result.user?.role) {
+          switch (result.data.user?.role) {
             case "admin":
               router.push("/admin-dashboard");
               break;
@@ -112,9 +112,11 @@ export default function LoginPage() {
         setFailedAttempts((prev) => prev + 1);
         setError("root", {
           type: "manual",
-          message: result.error || "Authentication failed",
+          message: result.data.error || "Authentication failed",
         });
-        toast.error(result.error || "Invalid credentials. Please try again.");
+        toast.error(
+          result.data.error || "Invalid credentials. Please try again."
+        );
       }
     } catch (error) {
       toast.error("Unable to connect to the server. Please try again.");

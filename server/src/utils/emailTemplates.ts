@@ -8,7 +8,10 @@ const defaultFooter = `
   </p>
 `;
 
-export const getVerificationEmailHtml = (name: string, code: string): string => `
+export const getVerificationEmailHtml = (
+  name: string,
+  code: string
+): string => `
   <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e0e0e0; padding: 24px;">
     <h2 style="color: #333;">Verify your email address</h2>
     <p>Hi <strong>${name}</strong>,</p>
